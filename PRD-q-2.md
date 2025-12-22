@@ -1869,3 +1869,275 @@ class MetricsMiddleware:
 - [ ] **CI pipeline configuration:** Set up GitHub Actions for linting, tests, and staging deployment
 
 This PRD serves as a complete, production-ready blueprint for building the NexusCore platform. It balances strategic vision with pragmatic execution, ensuring we deliver a high-quality, maintainable solution that meets business goals while adhering to technical best practices and compliance requirements. The focus on Django 6.0 provides a modern, secure foundation that will scale with our business needs.
+
+---
+
+Thanks — this is a solid, very complete PRD. Below I give a clear, factual, side-by-side comparison between **your improved PRD (v2.0)** and **the drop-in PRD I produced earlier**, call out where each is stronger, list gaps or risks to fix, and finish with a prioritized set of concrete next actions you can run immediately.
+
+Where I reference your uploaded PRD I’ll cite it so you can jump straight to the source. 
+
+---
+
+# Quick summary (one line)
+
+Both PRDs align on architecture, stack, compliance, and core flows (marketing → trial → subscription), but your PRD is more operational and code-level (detailed models, indexes, container + CI examples), while my earlier PRD contributed additional engineering acceptance criteria, runbook/observability emphasis, and a few engineering-level checks and tests. Together they form a very complete blueprint.
+
+---
+
+# 1) Strong common ground (what both PRDs get right)
+
+* Headless, decoupled architecture: Next.js frontend + Django 6.0 + DRF backend.
+* Core flows: hero → lead capture → trial onboarding → Stripe subscription → invoices + webhooks.
+* Non-functional priorities: performance, WCAG AA accessibility, PDPA compliance, monitoring & CI/CD.
+* Use of Celery + Redis for background jobs and retries, with attention to idempotency for webhooks. (Your PRD documents tasks & retry policies in detail. )
+* Clear MVP scope and sensible phase breakdown toward a production launch.
+
+---
+
+# 2) What your PRD adds / does better (concrete examples)
+
+* **Deep engineering artifacts** — contains concrete Django 6.0 code snippets, Celery task implementations, DB schema/models, SQL index recommendations, docker-compose and production Compose examples, Prometheus metrics, and GitHub Actions pipeline. These make the spec directly actionable for engineers. 
+* **Operational details** — DSAR endpoints and processing code, DSAR model, DSAR SLA (72 hours), and policies for retention (user accounts, billing, leads, logs). 
+* **Indexing & performance tuning** — explicit Postgres index statements (CONCURRENTLY) and full-text indexes useful for admin queries. 
+* **Monitoring & metrics** — Prometheus counters and business metrics middleware examples to instrument trial signups / subscription conversions. 
+* **Detailed testing examples** — pytest unit tests + Cypress E2E examples for subscription flows and webhook deduplication—great for CI gating. 
+
+These make your PRD particularly strong for engineering teams that want runnable templates and immediate implementation tasks.
+
+---
+
+# 3) What my PRD (the one I provided earlier) adds / does better
+
+* **High-level acceptance & validation focus** — I emphasized an Events & Acceptance Matrix that ties each critical business flow to: API endpoints, Celery tasks, monitoring alerts, E2E tests, and KPIs. (This is a practical bridge from product requirements to engineering acceptance tests.)
+* **Risk mitigation for revenue flows** — I provided detailed recommendations for idempotency keys, webhook retry/dunning strategy, and alerting for failed payment scenarios (and explicit acceptance tests for billing). Your PRD includes idempotency and retries, but the acceptance-matrix approach (traceable E2E criteria per event) was more explicit in my earlier doc.
+* **Operational runbooks & incident playbooks** — I outlined clearer runbook items and who to notify on payment webhook failures, DSAR overruns, and queue backlogs. Your PRD contains runbook fragments (good), but mine stressed the step-by-step incident flow and owner assignment.
+* **Phased performance realism** — I suggested a phased performance target (baseline → quick wins → stretch >90 Lighthouse), which helps make the schedule realistic; your PRD sets aggressive targets (Mobile LCP ≤2.5s launch → ≤2.0s in 60 days) that are reachable but need resource & third-party control plans.
+
+---
+
+# 4) Important differences & where to reconcile
+
+1. **Level of detail vs. ownership**
+
+   * Your PRD is very detailed technically (excellent). It still needs a small, explicit **RACI / owner mapping for critical flows** (who owns DSAR, billing reconciliation, webhooks, monitoring alert ownership). Adding owners converts specs into operational reality. (You do list team roles, but per-flow owners are not explicit.) 
+
+2. **Acceptance Matrix (traceability)**
+
+   * Your PRD contains acceptance criteria per area, and many great test cases. I recommend adding an **Events → Acceptance Test → Monitoring → KPI** table for every critical flow so the QA team and product team share the same definition of “done.” (I described that pattern earlier and strongly recommend adding it as a single table.)
+
+3. **Performance targets & rollout strategy**
+
+   * You target Mobile LCP ≤2.5s at launch and ≤2.0s quickly after. Good — but include a **concurrency of fixes** (what to do if third-party scripts block LCP) and a **performance rollback strategy** (feature flag / temporarily disable heavy widgets) to guarantee launch targets. 
+
+4. **Financial / reconciliation controls**
+
+   * You cover Stripe and PayNow via Stripe where supported. Add explicit **reconciliation & reporting tasks** (daily merchant reconciliation, a small report CSV for finance, alerting on settlement mismatch). This is often missed and is critical for finance. 
+
+5. **DSAR automation vs manual review**
+
+   * Your PRD plants automated DSAR export tasks (good). Add a **human review step** for deletion requests (and audit trail approval) to avoid accidental removals and prove compliance. The DSAR task code you included is useful — just make the approval workflow explicit. 
+
+6. **A/B testing & experimentation**
+
+   * Your PRD mentions personalization and analytics but doesn’t include an immediate A/B testing roadmap. Add 2–3 prioritized experiments to increase conversion (headline, pricing emphasis, trial CTA) and define measurement windows / sample sizes to iterate fast.
+
+7. **Cost & run rate detail**
+
+   * Your budget is clear and pragmatic. Consider converting it to a **12-month run-rate** including Stripe fees, estimated marketing pixels cost, CDN bills, and periodic security testing — useful for finance forecasting. 
+
+---
+
+# 5) Gaps I recommend closing (high-impact, short list)
+
+1. **Per-flow owners & acceptance matrix** — add owner (role/email) + automated E2E test mapping for each critical event (trial_started, subscription_created, invoice_paid, dsar_request).
+2. **Reconciliation & finance reporting** — add nightly reconciliation job and a manual reconciliation report for finance.
+3. **A/B experiments plan** — add three prioritized experiments with hypotheses, metric, and minimum sample size.
+4. **DSAR human approval workflow** — add QA/Legal approval step for deletion and a retained audit log for every DSAR action.
+5. **Third-party governance** — add an explicit “allowed third-party scripts” list and a performance budget (ms) for each.
+6. **Runbook owners & SLAs** — make runbooks actionable by assigning on-call or rotation owners and SLAs for key alerts.
+
+These changes are small to add to your current doc and yield outsized operational safety.
+
+---
+
+# 6) Prioritized immediate next steps (what to do in the next 1–4 weeks)
+
+(These combine both PRDs and are ordered by impact / urgency.)
+
+1. **Create the Events → Acceptance Matrix** (high priority). For each event list required API endpoints, Celery tasks, E2E tests, monitoring alerts, and KPIs. (I can generate this table now.)
+2. **Assign per-flow owners & RACI** — pick a product owner, engineering owner, and operations owner for billing, DSAR, and monitoring.
+3. **Add reconciliation job + finance report** — implement nightly job that compares Stripe settlements vs local invoice records and alerts finance on discrepancies.
+4. **Add A/B testing plan (3 experiments)** — headline, pricing badge, CTA wording. Define metrics & sample size.
+5. **Define third-party script policy** — list allowed vendors + performance budget and enforce in CI (bundle size / lighthouse gating).
+6. **Prepare OpenAPI/Swagger skeleton** from your API surface for quick backend/frontend contract work. (Your PRD includes endpoints; convert to OpenAPI to start.) 
+
+---
+
+# 7) Small technical nitpicks I noticed (fixes that prevent future bugs)
+
+* In the IDempotency examples: ensure `IdempotencyRecord` TTL is explicit and cleaned to avoid unbounded table growth. (Your code creates records; add cleanup). 
+* Your `CSP_SCRIPT_SRC` includes `'unsafe-inline'` — prefer nonce or strict CSP to reduce XSS exposure if possible. (You already have CSP; tighten it where feasible.) 
+* For Celery backoffs: add Dead Letter queue / long-failure alert to catch persistent webhook failures. Your tasks include retry/backoff — add an alert path for max retries exceeded. 
+
+---
+
+# 8) Suggested deliverable I will produce for you immediately (no wait)
+
+I’ll produce the **Events → Acceptance Matrix** (mapped to your exact events, API endpoints, Celery tasks, monitoring alerts, E2E test names, and KPI) and a short **RACI table** for the top 6 flows (trial signup, subscription creation, invoice paid, payment failure, DSAR export, demo request). This directly answers the most important gap between strategy and engineering acceptance.
+
+---
+
+# Events → Acceptance Matrix (with E2E tests, tasks, monitoring)
+
+*Executive summary:* below is a pragmatic, engineer-friendly matrix that ties each critical business event to the API surface, background tasks, idempotency rules, automated test(s), monitoring/alerts, and clear acceptance criteria/KPIs. Use this as the single source of truth for product → engineering → QA handoffs.
+
+---
+
+## Legend — roles referenced in RACI later
+
+* **PO** = Product Owner
+* **EM** = Engineering Manager / Eng Lead
+* **BE** = Backend Engineer
+* **FE** = Frontend Engineer
+* **QA** = QA Engineer / Test Lead
+* **OPS** = DevOps / SRE
+* **Sales** = Sales / SDR
+* **Finance** = Finance / Billing
+* **Legal** = Legal / Data Protection Officer
+
+---
+
+## Events Matrix
+
+| Event name                           |                                                        Trigger source | API endpoint(s) / UI flow                                                     | Celery task(s) / background work                                                                                               | Idempotency & notes                                                                                                                                                              | E2E test name & steps (high-level)                                                                                                                                           |                                                                                                                              Monitoring & alert rule | KPI / Acceptance criteria                                                                                                                                                          |
+| ------------------------------------ | --------------------------------------------------------------------: | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **trial_started**                    |                         User clicks "Start free trial" → registration | `POST /api/v1/auth/register/` + `POST /api/v1/trial/start/` (or one combined) | `seed_demo_account(org_id)` (default dataset), `send_transactional_email('welcome')`                                           | Use `idempotency_key` on trial start requests; create `IdempotencyRecord` TTL 90 days and cleanup job.                                                                           | `e2e_trial_signup_flow` — fill signup form, verify email link, sign in, see demo dashboard seeded with data. Assert `events.trial_started` created & demo widgets visible.   |                                                    Alert if `trial_started` fails >5% of attempts in 1h or rate of verification email bounces >3/hr. | Acceptance: new trial user can access demo dashboard within 60s of email verification; 95% of trial starts processed successfully in staging.                                      |
+| **lead_submitted**                   |                                     Lead/Contact form or demo request | `POST /api/v1/leads/` or `POST /api/v1/demo-request/`                         | `enqueue_crm_sync(lead_id)` (webhook to CRM), `send_auto_thankyou_email`                                                       | Use idempotency by `lead_hash(email+company+timestamp)` for duplicate protection; store UTM tags.                                                                                | `e2e_lead_capture` — submit lead form with UTM; assert `lead` created, CRM webhook delivered (mock), and thank-you page shown.                                               |                                                                                      Alert if webhook to CRM fails >10% in 30m or queue backlog >50. | Acceptance: leads created with UTM fields; CRM receives webhooks within 30s; 99% of leads have utm_source captured.                                                                |
+| **subscription_created**             |                                   User enters payment & confirms plan | `POST /api/v1/subscriptions/` (frontend Stripe token -> backend)              | `create_subscription_workflow()` → create Stripe customer, create subscription, store stripe_ids, `generate_invoice_if_needed` | Must support idempotency via `idempotency_key` (client-generated) and enforce server-side checks to avoid double subscriptions. Use Stripe idempotency for server->Stripe calls. | `e2e_subscribe_flow` — user signs up, enters card, completes checkout. Assert Stripe subscription exists, local subscription status = `active`, invoice generated & emailed. | Alert if subscription create webhook not received (invoice.payment_succeeded) within 5m OR if 2+ create attempts detected with same idempotency key. | KPI: Payment success rate ≥ 98% in staging tests; production webhook processing success rate ≥ 99.9%. Acceptance: subscription becomes `active` and invoice delivered within 120s. |
+| **invoice_generated**                | System generates invoice after successful charge or scheduled billing | Internal API + Celery: `generate_invoice_pdf(invoice_id)`                     | `generate_invoice_pdf`, `store_pdf_s3`, `send_invoice_email(invoice_id)`                                                       | Invoice generation must be idempotent (invoice idempotency on job) — use invoice `status` transitions to avoid duplicate PDFs.                                                   | `e2e_invoice_download` — create subscription -> simulate invoice event -> assert PDF exists (S3 path) and `GET /api/v1/invoices/{id}/download/` returns PDF.                 |                                                                              Alert if invoice generation fails >3% in 1h or S3 storage errors spike. | Acceptance: Invoice PDFs available and downloadable; 99% of invoices have a valid PDF within 2 minutes.                                                                            |
+| **invoice_payment_failed** (dunning) |              Stripe webhook `invoice.payment_failed` or charge failed | Webhook `POST /api/v1/webhooks/stripe/` -> `process_stripe_webhook`           | `billing_retry_job`, `send_payment_failed_email(subscription_id)`                                                              | Webhook processing uses Stripe signature verification + idempotency by `event_id`. If max retries reached, mark subscription `past_due`.                                         | `e2e_payment_failure_retry` — simulate payment failure (test stripe mode), verify retry job runs, emails sent, subscription status updated to `past_due` after thresholds.   |  Alert on >0.5% failed payments/hour spike or if `billing_retry_job` backlog > threshold; alert for >10 subscriptions reaching `past_due` within 1h. | Acceptance: retry sequence is executed and notifications are sent; Finance notified when subscription enters `past_due`.                                                           |
+| **payment_dispute/refund**           |                                        Stripe dispute/refund webhooks | `POST /api/v1/webhooks/stripe/`                                               | `process_dispute_event` -> notify Finance and Sales; create `refund` record if auto-refund                                     | Idempotency via event ID. Create audit log entry.                                                                                                                                | `e2e_refund_flow` — trigger refund webhook in sandbox; assert refund record, email to finance, audit log created.                                                            |                                                                                          Alert if dispute count exceeds baseline + X (configurable). | Acceptance: refunds result in correct DB state and Finance has reconciliation report within 1 day.                                                                                 |
+| **dsar_requested**                   |                                                User submits DSAR form | `POST /api/v1/dsar/submit/`                                                   | `process_dsar_request(dsar_id)` — collate user data, upload export zip to S3, notify admin                                     | DSAR submissions must create a ticket; require manual approval step for deletions.                                                                                               | `e2e_dsar_export` — submit DSAR, assert dsar record created, exporter task runs, package link generated, and admin gets notification.                                        |                                                                            Alert if DSAR task backlog > 10 or if DSAR not completed within 72 hours. | Acceptance: DSAR package available to admin within 72 hours; deletion requests require manual approval and are logged.                                                             |
+| **webhook_processing_failed**        |                 Any third-party webhook error (Stripe, CRM callbacks) | `POST /api/v1/webhooks/*`                                                     | `process_webhook` tasks; push to dead-letter queue on repeated failures                                                        | Record webhook event IDs and status; DLQ on N retries.                                                                                                                           | `e2e_webhook_dedup_and_replay` — send duplicate events and out-of-order events; assert idempotency and eventual consistency.                                                 |                                                                                       Alert if webhook DLQ size > 5 or repeated failure > threshold. | Acceptance: retries succeed or fail to DLQ with alert; manual replay possible.                                                                                                     |
+| **cta_click** (analytics critical)   |                                       Any primary CTA (hero, pricing) | Frontend event -> server-side endpoint `POST /api/v1/events/` (optional)      | `store_event` (batch flush)                                                                                                    | Events are append-only; ensure no PII in event payloads.                                                                                                                         | `e2e_cta_event` — click CTA, assert event appears in GA4 and server-side event stream.                                                                                       |                                                                                       Alert if event ingestion latency > 10s or > 5% of events lost. | Acceptance: CTA event captured server-side for all conversion-critical flows; event pipeline shows <1% drop.                                                                       |
+
+---
+
+## Implementation notes & best-practices (idempotency, retry, DLQ)
+
+* **Idempotency keys:** All revenue-affecting operations (subscription create, charge, invoice creation) must accept a client-provided `Idempotency-Key` header. Store idempotency records with TTL (90 days) and a cleanup job to avoid table growth.
+* **Webhook idempotency:** Use provider `event_id` (Stripe `id`) as unique key; if event already processed, acknowledge with 200. Avoid reprocessing.
+* **Dead-letter queue (DLQ):** Celery should move tasks to a DLQ after N retries (e.g., 5) and trigger `alert/webhook-dlq` to Ops.
+* **Monitoring thresholds:** tune baselines in staging for first two weeks and adjust alarms accordingly.
+
+---
+
+# RACI: Top 6 flows (who does what)
+
+> R = Responsible (does the work)
+> A = Accountable (owns the decision/outcome)
+> C = Consulted (advises)
+> I = Informed (kept in loop)
+
+| Flow                                                   |  PO |  EM |  BE |  FE |  QA | OPS | Sales | Finance | Legal |
+| ------------------------------------------------------ | :-: | :-: | :-: | :-: | :-: | :-: | :---: | :-----: | :---: |
+| **Trial signup (trial_started)**                       |  A  |  C  |  R  |  R  |  C  |  I  |   I   |    I    |   I   |
+| **Lead capture & demo request (lead_submitted)**       |  A  |  C  |  R  |  R  |  C  |  I  |   R   |    I    |   I   |
+| **Subscription creation (subscription_created)**       |  A  |  C  |  R  |  R  |  C  |  C  |   I   |    A    |   I   |
+| **Invoice generated / invoice download**               |  A  |  C  |  R  |  I  |  C  |  C  |   I   |    R    |   I   |
+| **Payment failure / dunning (invoice_payment_failed)** |  A  |  C  |  R  |  I  |  C  |  R  |   I   |    A    |   I   |
+| **DSAR export / deletion (dsar_requested)**            |  A  |  C  |  R  |  I  |  C  |  I  |   I   |    I    |   R   |
+
+*Notes on RACI specifics:*
+
+* **PO (Accountable)** for business acceptance and policy (trial length, refund policy, DSAR SLA).
+* **EM** consults on technical choices and prioritization.
+* **BE** is Responsible for implementing APIs, webhook processing, Celery tasks, idempotency.
+* **FE** implements front-end forms, UX, client idempotency key generation, and instrumentation.
+* **QA** designs and executes E2E and regression tests for acceptance criteria.
+* **OPS** manages infra, monitoring, alerts, and emergency runbooks.
+* **Finance** is Accountable for reconciliation and approves refund/dunning rules.
+* **Legal** is Accountable for DSAR policy & approves deletion workflows and logs.
+
+---
+
+# Concrete E2E test definitions (template) — include in CI gating
+
+For each E2E test below, include preconditions (staging Stripe/test keys, test user), explicit steps, expected assertions, cleanup steps:
+
+1. `e2e_trial_signup_flow`
+
+   * Precondition: Staging env, Stripe sandbox disabled for trial-only path.
+   * Steps: complete signup → verify email → sign in → open demo dashboard.
+   * Assertions: `trial_started` event exists, demo dataset objects present, welcome email sent.
+   * Cleanup: delete test org and user.
+
+2. `e2e_subscribe_flow`
+
+   * Precondition: Stripe test keys, test card number.
+   * Steps: sign up or log in → choose plan → enter card → confirm.
+   * Assertions: Stripe subscription created, DB subscription status `active`, invoice exists + pdf.
+   * Cleanup: cancel subscription in Stripe, delete test org.
+
+3. `e2e_payment_failure_retry`
+
+   * Precondition: Simulate failing card or use Stripe test webhook to mimic `invoice.payment_failed`.
+   * Steps: trigger failure → run `billing_retry_job` simulation → observe state transitions.
+   * Assertions: subscription moves to `past_due` after retries, emails sent, DLQ not abused.
+   * Cleanup: reset test data.
+
+4. `e2e_dsar_export`
+
+   * Precondition: Test user with sample data.
+   * Steps: submit DSAR → run `process_dsar_request` → verify export file created and admin notification recorded.
+   * Assertions: export package contains expected files, `dsar_requests.status = ready`, admin gets notification.
+   * Cleanup: remove DSAR artifacts.
+
+5. `e2e_webhook_idempotency`
+
+   * Precondition: send same webhook event twice with same `id`.
+   * Steps: send event A twice → check DB and side-effects.
+   * Assertions: only one side-effect applied; no duplicate invoices/subscriptions created.
+   * Cleanup: none.
+
+---
+
+# Monitoring & Alerting — Recommended thresholds (starter values)
+
+* **Webhook processing failures**: alert when > 5 failures in 15m OR DLQ size ≥ 5.
+* **Celery queue backlog**: alert when queue length > 100 for `high` queue; or when average queue processing time > 30s.
+* **Failed payments**: alert when failed payment rate exceeds 1% over 1 hour or when >10 subscriptions become `past_due` in 1 hour.
+* **Trial signup failure rate**: alert when >5% of trial signup attempts fail (end-to-end).
+* **DSAR SLA breach**: alert when any DSAR remains `pending` > 72 hours.
+* **SLA for subscription activation**: create incident if a `subscription_created` event does not reach `active` state within 5 minutes for >1% of attempts.
+
+Tune these with baseline data in first 2 weeks post-launch.
+
+---
+
+# Runbook snippets (actionable quick steps)
+
+**Payment webhook failure (Ops response):**
+
+1. Pager triggered → Ops acknowledges and creates incident.
+2. Check webhook logs and recent events; identify failed stripe `event_id`.
+3. If DLQ contains events, replay the event with safe reprocessing steps.
+4. If idempotency conflict, consult BE to reconcile and run manual compensation (refund/cancel) as needed.
+5. Notify Finance & Sales of incident and affected customers.
+
+**DSAR overdue (Legal response):**
+
+1. Legal notified by alert → check DSAR ticket in system.
+2. Ops/BE run exporter job manually if failure.
+3. If deletion is requested, Legal approves prior to deletion; audit log entry enforced.
+
+---
+
+# Next steps — immediate actionable checklist (what to run this week)
+
+1. **Add this matrix to the main PRD** and assign owners to each event (PO/EM -> add names/emails).
+2. **Implement idempotency table cleanup job** (TTL + scheduled cleanup) and add to Celery tasks.
+3. **Create mock endpoints & fixtures for webhooks** in staging and add `e2e_webhook_idempotency` to CI.
+4. **Wire up monitoring** for the thresholds above in staging (Sentry + Prometheus + Grafana dashboards).
+5. **Create the first 3 A/B experiments** (headline variant, pricing CTA wording, “Recommended” badge prominence) and add to the measurement backlog — map to `cta_click` and `trial_started` as success metrics.
+6. **Publish RACI** (replace role placeholders with actual team members) and share with stakeholders.
