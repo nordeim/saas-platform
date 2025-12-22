@@ -1593,22 +1593,786 @@ jobs:
 - Stripe API Documentation: https://stripe.com/docs/api
 - PDPA Singapore: https://www.pdpc.gov.sg/
 
-### Appendix C: Change Log
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | 2024-05-15 | AI Tech Architect | Initial draft |
-| 2.0 | 2024-05-22 | AI Tech Architect | Merged pragmatic design with Django 6.0 features, refined architecture |
+---
+
+# Meticulous Validation & Gap Analysis
+
+You are absolutely correct. In my effort to merge the strategic "Elementra" design cues and the new Django 6.0 capabilities, I inadvertently stripped away the **deep implementation detail** contained in `PRD-q-2.md`. The previous version was a high-level architectural summary, whereas the reference was a technical specification.
+
+## Gap Analysis Summary
+
+| Section | Reference PRD (q-2) Depth | My Draft Depth | Missing Critical Elements |
+| :--- | :--- | :--- | :--- |
+| **Django Configuration** | **High:** Specific `settings.py` blocks for DB, Cache, Security. | **Low:** Mentioned features, no code. | Concrete `settings.py` implementation details (Connection health, Native CSP). |
+| **Data Models** | **High:** Full Python Class definitions for User, Org, Subscription, etc. | **Low:** High-level description only. | **CRITICAL:** Missing the actual Django Model code required for implementation. |
+| **API Logic** | **High:** Full ViewSet code with idempotency logic and async methods. | **Low:** Endpoint list only. | **CRITICAL:** Missing the complex Python views showing *how* to handle subscriptions and webhooks. |
+| **Celery Tasks** | **High:** Full task code for Webhooks, PDFs, DSARs. | **Low:** Queue priorities only. | **CRITICAL:** Missing the actual background job logic (Retry logic, error handling). |
+| **Testing** | **Medium/High:** Pytest and Cypress code blocks. | **Medium:** Snippets present. | The reference had more comprehensive test cases for Idempotency. |
+
+## Conclusion
+The previous draft was a *Strategy Document*. To be a "Drop-in Replacement PRD," it must be a *Technical Specification*. I will now regenerate the document, restoring all the detailed code blocks from `PRD-q-2.md` while applying the **Django 6.0 upgrades** (Native CSP, Connection Health Checks) and **Design System enhancements** (Tailwind config for Glassmorphism).
 
 ---
 
-**Document Approval**
+# Project Requirements Document (PRD): NexusCore v2.0 (The Definitive Edition)
 
-| Role | Name | Signature | Date |
-|------|------|-----------|------|
-| Product Owner | [To be filled] | | |
-| Tech Lead | [To be filled] | | |
-| Project Manager | [To be filled] | | |
+## Project Name: NexusCore — English-Only SaaS Corporate Website & Marketing Platform
+**Version:** 2.0 (Definitive, Technical Specification)  
+**Date:** December 22, 2025  
+**Primary Stack:**  
+- **Backend:** Django 6.0 + DRF + Celery 5.x  
+- **Frontend:** Next.js 14.2+ (App Router) + React 18 + TypeScript  
+- **DB / Cache:** PostgreSQL 16+ + Redis 7.4+  
+- **Python:** 3.12+  
 
 ---
 
-*This document serves as the single source of truth for the NexusCore project. All development work should reference this document to ensure alignment with project goals and requirements.*
+## 1. Executive Summary
+
+Build a production-ready, English-only marketing & lead-management site for a Singapore-based medium B2B SaaS company. This PRD merges the **visual ambition** of the Elementra design system (Glassmorphism, Gradients) with the **rigorous technical depth** of enterprise Django development. It utilizes the latest **Django 6.0** features for security and performance.
+
+**Primary goals:**
+- Convert visitors → qualified leads → trials/demos with measurable funnels
+- Provide robust subscription and invoice flows with production-grade webhook and retry handling
+- Maintainable, secure, and testable architecture for rapid iteration
+
+---
+
+## 2. Core Goals & Success Metrics
+
+### Business Goals
+- Generate qualified leads and reduce friction to trial/demo
+- Provide marketing & sales with measurable funnel events
+- Run a reliable billing/trial pipeline for revenue capture
+- Meet Singapore PDPA requirements for consent and DSARs
+
+### Success Metrics (90-day targets)
+| Metric | Target | Measurement Method |
+|--------|--------|-------------------|
+| Trial/Demo signups | +30% over baseline | GA4 conversion tracking |
+| Visitor → CTA click conversion | ≥ 5% on pricing pages | Heatmaps + event tracking |
+| Mobile LCP (launch) | ≤ 2.5s → ≤ 2.0s within 60 days | Lighthouse + RUM |
+| WCAG AA compliance | No critical failures | axe-core + manual audit |
+| Payment webhook success | ≥ 99.9% processing success | Stripe logs + monitoring |
+| DSAR fulfillment SLA | ≤ 72 hours for export requests | DSAR workflow tracking |
+
+---
+
+## 3. Scope Definition
+
+### MVP (In-Scope)
+**Marketing Pages:**
+- Home, Product/Solutions, Pricing, Case Studies, Resources (blog), Contact, Privacy/Terms, FAQ
+- Lead capture forms (UTM capture), demo-request flow, newsletter sign-up
+
+**User Authentication:**
+- Email signup, verify, password reset, simple trial onboarding
+- Session management with secure cookies
+
+**Subscription & Billing:**
+- Stripe integration (trial, starter, pro plans)
+- Invoice generation and PDF downloads
+- Webhook processing + Celery background tasks
+- Dunning strategy for failed payments
+
+**Admin Dashboard:**
+- Django admin + lightweight custom admin pages
+- Users, leads, subscriptions, invoices management
+- CSV exports and audit logs
+
+**Operational Infrastructure:**
+- Background jobs (Celery + Redis)
+- DSAR endpoints and workflows
+- Monitoring and alerting (Sentry, Prometheus)
+- CI/CD pipelines and deployment automation
+
+**Compliance:**
+- PDPA-compliant data handling
+- Cookie consent management
+- DSAR endpoints (`/api/v1/dsar/export/`, `/api/v1/dsar/delete/`)
+- Data retention policies
+
+---
+
+## 4. Technical Architecture
+
+### High-Level Architecture Diagram
+```
+[User Browser] → Next.js (SSG/SSR) → DRF API (HTTPS) → Django Business Logic
+       │                │                 │
+       │                │                 ├── PostgreSQL 16 (Primary DB)
+       │                │                 ├── Redis 7.4 (Cache/Broker)
+       │                │                 └── Celery Workers (Background Jobs)
+       │                │
+       │                └── CDN (Static Assets)
+       │
+       └── Third-party Services:
+           ├── Stripe (Payments)
+           ├── SendGrid/SES (Email)
+           ├── CRM (Lead webhooks)
+           └── Sentry (Error Monitoring)
+```
+
+### Django 6.0 Implementation Details (Explicit Configuration)
+
+We will use the native `ContentSecurityPolicyMiddleware` and specific connection health checks.
+
+```python
+# backend/config/settings.py
+
+# 1. Database Configuration (Django 6.0 Optimized)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c statement_timeout=5000',  # 5 second timeout
+            'application_name': 'nexuscore'
+        },
+        'CONN_HEALTH_CHECKS': True,  # Django 6.0+ Feature for persistent connection validation
+        'CONN_MAX_AGE': 60,          # Persistent connections
+    }
+}
+
+# 2. Native Content Security Policy (Django 6.0)
+from django.utils.csp import CSP
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.csp.ContentSecurityPolicyMiddleware', # New Native Middleware
+]
+
+SECURE_CSP = {
+    "default-src": [CSP.SELF],
+    "script-src": [CSP.SELF, CSP.NONCE, "https://*.stripe.com", "https://www.googletagmanager.com"],
+    "style-src": [CSP.SELF, CSP.UNSAFE_INLINE], # Allow Tailwind inline styles
+    "img-src": [CSP.SELF, "https:", "data:"],
+    "connect-src": [CSP.SELF, "https://*.stripe.com"],
+    "frame-src": [CSP.SELF, "https://*.stripe.com"],
+}
+
+# 3. Cache Configuration (Redis)
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'PARSER_CLASS': 'redis.connection.HiredisParser',
+        }
+    }
+}
+
+# 4. Celery Configuration
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+```
+
+---
+
+## 5. Data Model (Core Entities)
+
+### PostgreSQL 16 Schema (Django Models)
+
+```python
+# backend/apps/core/models.py
+from django.db import models
+from django.contrib.postgres.fields import JSONField
+import uuid
+
+class User(models.Model):
+    """Django 6.0 custom user model"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(unique=True)
+    name = models.CharField(max_length=255)
+    password_hash = models.CharField(max_length=255) # Storing hash, not raw
+    is_verified = models.BooleanField(default=False)
+    role = models.CharField(max_length=20, choices=[
+        ('admin', 'Admin'),
+        ('user', 'User'),
+        ('viewer', 'Viewer')
+    ], default='user')
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_login = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['email']),
+            models.Index(fields=['created_at']),
+        ]
+
+class Organization(models.Model):
+    """Company/organization entity"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    stripe_customer_id = models.CharField(max_length=255, blank=True)
+    billing_contact = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    timezone = models.CharField(max_length=50, default='Asia/Singapore')
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['stripe_customer_id']),
+        ]
+
+class Plan(models.Model):
+    """Subscription plan definitions"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    sku = models.CharField(max_length=50, unique=True)
+    price_monthly_cents = models.IntegerField()
+    price_annual_cents = models.IntegerField()
+    features = JSONField(default=dict)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['sku']),
+            models.Index(fields=['is_active']),
+        ]
+
+class Subscription(models.Model):
+    """Customer subscription state"""
+    STATUS_CHOICES = [
+        ('trial', 'Trial'),
+        ('active', 'Active'),
+        ('past_due', 'Past Due'),
+        ('cancelled', 'Cancelled'),
+        ('unpaid', 'Unpaid'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='subscriptions')
+    plan = models.ForeignKey(Plan, on_delete=models.PROTECT)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='trial')
+    stripe_subscription_id = models.CharField(max_length=255, blank=True)
+    current_period_start = models.DateTimeField()
+    current_period_end = models.DateTimeField()
+    trial_ends_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['organization']),
+            models.Index(fields=['status', 'current_period_end']),
+            models.Index(fields=['stripe_subscription_id']),
+        ]
+
+class Invoice(models.Model):
+    """Billing invoices"""
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('open', 'Open'),
+        ('paid', 'Paid'),
+        ('void', 'Void'),
+        ('uncollectible', 'Uncollectible'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='invoices')
+    amount_cents = models.IntegerField()
+    currency = models.CharField(max_length=3, default='SGD')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    pdf_url = models.URLField(blank=True)
+    stripe_invoice_id = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField()
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['organization']),
+            models.Index(fields=['status', 'due_date']),
+            models.Index(fields=['stripe_invoice_id']),
+        ]
+
+class Lead(models.Model):
+    """Marketing leads"""
+    STATUS_CHOICES = [
+        ('new', 'New'),
+        ('contacted', 'Contacted'),
+        ('qualified', 'Qualified'),
+        ('converted', 'Converted'),
+        ('disqualified', 'Disqualified'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    company = models.CharField(max_length=255)
+    source = models.CharField(max_length=50)
+    utm_source = models.CharField(max_length=100, blank=True)
+    utm_medium = models.CharField(max_length=100, blank=True)
+    utm_campaign = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+    owner_id = models.UUIDField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['email']),
+        ]
+
+class DSARRequest(models.Model):
+    """Data Subject Access Request tracking"""
+    REQUEST_TYPE_CHOICES = [
+        ('export', 'Data Export'),
+        ('delete', 'Data Deletion'),
+        ('access', 'Data Access'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user_email = models.EmailField()
+    request_type = models.CharField(max_length=20, choices=REQUEST_TYPE_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    export_url = models.URLField(blank=True)
+    requested_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    failure_reason = models.TextField(blank=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['status', 'requested_at']),
+            models.Index(fields=['user_email']),
+        ]
+```
+
+### SQL Indexing Strategy
+
+```sql
+-- backend/scripts/migrations_indexes.sql
+CREATE INDEX CONCURRENTLY idx_subscriptions_active_org ON subscriptions(organization_id) 
+WHERE status = 'active';
+
+CREATE INDEX CONCURRENTLY idx_invoices_paid_recent ON invoices(organization_id, created_at) 
+WHERE status = 'paid' AND created_at >= NOW() - INTERVAL '3 months';
+
+CREATE INDEX CONCURRENTLY idx_leads_new_status ON leads(status) 
+WHERE status = 'new';
+
+CREATE INDEX CONCURRENTLY idx_dsar_pending ON dsar_requests(status) 
+WHERE status = 'pending';
+
+-- Full-text search
+CREATE INDEX CONCURRENTLY idx_organizations_search ON organizations 
+USING gin(to_tsvector('english', name));
+```
+
+---
+
+## 6. API Surface & Implementation
+
+### Django 6.0 API ViewSet (Idempotency & Async)
+
+```python
+# backend/api/views.py
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.db import transaction
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from celery.result import AsyncResult
+from .models import Subscription, IdempotencyRecord
+from .serializers import SubscriptionSerializer
+
+class SubscriptionViewSet(viewsets.ModelViewSet):
+    """
+    Django 6.0 optimized SubscriptionViewSet with idempotency and async support
+    """
+    serializer_class = SubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Subscription.objects.filter(
+            organization__members=self.request.user
+        ).select_related('organization', 'plan')
+    
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        """
+        Create subscription with Idempotency-Key header handling
+        """
+        idempotency_key = request.headers.get('Idempotency-Key')
+        if not idempotency_key:
+            return Response(
+                {'error': 'Idempotency-Key header required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check for existing request with same idempotency key
+        existing = IdempotencyRecord.objects.filter(
+            key=idempotency_key,
+            created_at__gte=timezone.now() - timedelta(hours=24)
+        ).first()
+        
+        if existing:
+            if existing.status == 'completed':
+                return Response(existing.response_data, status=status.HTTP_201_CREATED)
+            elif existing.status == 'processing':
+                return Response(
+                    {'status': 'processing'},
+                    status=status.HTTP_202_ACCEPTED
+                )
+        
+        # Create new idempotency record
+        record = IdempotencyRecord.objects.create(
+            key=idempotency_key,
+            request_data=request.data,
+            status='processing'
+        )
+        
+        try:
+            # Process subscription creation
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            
+            # Enqueue async Stripe processing
+            from .tasks import process_stripe_subscription
+            task = process_stripe_subscription.delay(
+                subscription_id=serializer.instance.id,
+                payment_method_id=request.data.get('payment_method_id')
+            )
+            
+            # Update idempotency record
+            record.task_id = task.id
+            record.status = 'processing'
+            record.save()
+            
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED,
+                headers=headers
+            )
+        except Exception as e:
+            record.status = 'failed'
+            record.error = str(e)
+            record.save()
+            raise
+    
+    @action(detail=True, methods=['post'])
+    async def cancel(self, request, pk=None):
+        """
+        Django 6.0 async cancellation endpoint
+        """
+        subscription = await self.aget_object()
+        if subscription.status == 'cancelled':
+            return Response({'detail': 'Already cancelled'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Async cancellation with Celery
+        from .tasks import cancel_subscription_task
+        cancellation_task = cancel_subscription_task.delay(
+            subscription_id=subscription.id,
+            reason=request.data.get('reason', 'user_requested')
+        )
+        
+        return Response({
+            'status': 'cancellation_initiated',
+            'task_id': cancellation_task.id
+        }, status=status.HTTP_202_ACCEPTED)
+```
+
+---
+
+## 7. Background Jobs (Celery)
+
+### Critical Celery Tasks
+
+```python
+# backend/api/tasks.py
+from celery import shared_task
+from celery.exceptions import MaxRetriesExceededError
+from django.db import transaction
+from django.conf import settings
+import stripe
+import logging
+
+logger = logging.getLogger(__name__)
+
+@shared_task(bind=True, max_retries=3, retry_backoff=True, retry_backoff_max=600)
+def process_stripe_webhook(self, payload, signature):
+    """
+    Process Stripe webhooks with idempotency and retry handling
+    """
+    try:
+        # Verify signature
+        stripe.WebhookSignature.verify_header(
+            payload, signature, settings.STRIPE_WEBHOOK_SECRET
+        )
+        
+        event = stripe.Event.construct_from(payload, settings.STRIPE_API_VERSION)
+        event_id = event.id
+        
+        # Check for duplicate processing
+        if WebhookEvent.objects.filter(event_id=event_id).exists():
+            logger.info(f"Duplicate webhook event {event_id} - skipping")
+            return {'status': 'duplicate'}
+        
+        with transaction.atomic():
+            # Record event processing
+            webhook_event = WebhookEvent.objects.create(
+                event_id=event_id,
+                event_type=event.type,
+                data=event.data,
+                processed=False
+            )
+            
+            # Route to specific handlers
+            if event.type == 'invoice.payment_succeeded':
+                handle_invoice_payment(event)
+            elif event.type == 'customer.subscription.updated':
+                handle_subscription_update(event)
+            elif event.type == 'customer.subscription.deleted':
+                handle_subscription_cancellation(event)
+            elif event.type == 'payment_intent.payment_failed':
+                handle_payment_failure(event)
+            
+            # Mark as processed
+            webhook_event.processed = True
+            webhook_event.save()
+            
+        logger.info(f"Successfully processed webhook event {event_id}")
+        return {'status': 'success', 'event_id': event_id}
+        
+    except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Invalid Stripe signature: {str(e)}")
+        raise self.retry(exc=e)
+    except Exception as e:
+        logger.error(f"Error processing webhook: {str(e)}")
+        try:
+            self.retry(exc=e)
+        except MaxRetriesExceededError:
+            logger.critical(f"Max retries exceeded for webhook processing: {str(e)}")
+            # Alert engineering team
+            send_alert_to_engineering(
+                "Webhook processing failed after max retries",
+                f"Event payload: {payload[:500]}..."
+            )
+            raise
+
+@shared_task(bind=True, max_retries=3)
+def generate_invoice_pdf(self, invoice_id):
+    """
+    Generate PDF invoice and upload to S3
+    """
+    from invoices.models import Invoice
+    from invoices.utils import render_invoice_pdf
+    
+    try:
+        invoice = Invoice.objects.select_related('organization').get(id=invoice_id)
+        
+        # Generate PDF
+        pdf_content = render_invoice_pdf(invoice)
+        
+        # Upload to S3
+        s3_key = f"invoices/{invoice.organization_id}/{invoice.id}.pdf"
+        s3_url = upload_to_s3(pdf_content, s3_key, content_type='application/pdf')
+        
+        # Update invoice record
+        invoice.pdf_url = s3_url
+        invoice.save()
+        
+        logger.info(f"Generated PDF for invoice {invoice_id}")
+        return {'status': 'success', 'pdf_url': s3_url}
+        
+    except Invoice.DoesNotExist:
+        logger.error(f"Invoice {invoice_id} does not exist")
+        return {'status': 'error', 'message': 'Invoice not found'}
+    except Exception as e:
+        logger.error(f"Error generating invoice PDF: {str(e)}")
+        self.retry(exc=e)
+```
+
+---
+
+## 8. Design System (Elementra + Corporate Glass)
+
+### Tailwind Configuration (Enhanced for Glassmorphism)
+
+```javascript
+// frontend/tailwind.config.js
+module.exports = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        primary: {
+          500: '#007bff',    // Brand Blue
+          600: '#0066cc',
+        },
+        dark: {
+          900: '#0B1120',    // Deep background
+          800: '#1E293B',    // Card background
+        }
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'hero-glow': 'conic-gradient(from 180deg at 50% 50%, #2563EB 0deg, #7C3AED 180deg, #2563EB 360deg)',
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+      boxShadow: {
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+      }
+    }
+  }
+}
+```
+
+### React Components (Accessible & Styled)
+
+```jsx
+// frontend/components/PricingCard.jsx
+export function PricingCard({ plan, onSelect, isMostPopular = false }) {
+  return (
+    <div 
+      className={`relative rounded-2xl border-2 p-6 backdrop-blur-md bg-white/5 shadow-glass transition-all duration-300 hover:scale-105 ${
+        isMostPopular ? 'border-primary-500 ring-2 ring-primary-500' : 'border-white/10'
+      }`}
+    >
+      <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+      <div className="my-4">
+        <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
+          SGD {plan.price}
+        </span>
+      </div>
+      <button 
+        onClick={() => onSelect(plan)}
+        className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow-lg hover:shadow-blue-500/50 transition-all"
+      >
+        Get Started
+      </button>
+      {/* ... features list ... */}
+    </div>
+  );
+}
+```
+
+---
+
+## 9. Testing Strategy
+
+### Backend Tests (Pytest)
+
+```python
+import pytest
+from rest_framework.test import APIClient
+from factories import UserFactory, OrganizationFactory, PlanFactory
+
+@pytest.mark.django_db
+class TestSubscriptionAPI:
+    
+    def test_create_subscription_with_idempotency(self):
+        client = APIClient()
+        user = UserFactory()
+        organization = OrganizationFactory(owner=user)
+        plan = PlanFactory(price_monthly_cents=1500)
+        client.force_authenticate(user=user)
+        
+        url = reverse('api:subscriptions-list')
+        headers = {'Idempotency-Key': 'test-key-123'}
+        data = {
+            'organization_id': str(organization.id),
+            'plan_id': str(plan.id),
+            'payment_method_id': 'pm_test_123'
+        }
+        
+        # First request
+        response1 = client.post(url, data, headers=headers)
+        assert response1.status_code == status.HTTP_201_CREATED
+        
+        # Second request (should return same ID)
+        response2 = client.post(url, data, headers=headers)
+        assert response2.status_code == status.HTTP_201_CREATED
+        assert response2.data['id'] == response1.data['id']
+```
+
+---
+
+## 10. Deployment (Docker Compose)
+
+```yaml
+version: '3.8'
+
+services:
+  django:
+    build: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - DATABASE_URL=postgres://user:password@postgres:5432/nexuscore
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - DEBUG=1
+
+  nextjs:
+    build: ./frontend
+    command: npm run dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=nexuscore
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgres
+
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    build: ./backend
+    command: celery -A nexuscore worker -l info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+
+volumes:
+  postgres_data:
+```
+
