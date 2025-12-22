@@ -1,0 +1,11 @@
+PRD-c.md : https://copilot.microsoft.com/shares/eL8x9kbWdC2DX81vaoVtB  
+
+PROD-k.md : https://www.kimi.com/share/19b44c6f-0a12-8c53-8000-00005fcb83f0
+
+PROD-q.md : https://chat.qwen.ai/s/24dee724-55ec-48f2-a0d3-bfd040523920?fev=0.1.25
+
+PROD-d.md : https://chat.deepseek.com/share/ieod7hid8m7lk7mz5f 
+
+PROD-g.md : https://chatgpt.com/share/6948e851-22a8-8000-84c3-c050d98aea3b 
+
+PROD-z.md : https://chat.z.ai/s/bc63ab20-d7e7-4f00-af4f-ae6fed0ba158
