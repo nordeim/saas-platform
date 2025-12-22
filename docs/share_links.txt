@@ -10,4 +10,6 @@ PROD-g.md : https://chatgpt.com/share/6948e851-22a8-8000-84c3-c050d98aea3b
 
 PRD-gt.md : https://chatgpt.com/share/6949203a-c450-8000-ae7e-7d57b574eca3 
 
+PRD-gt-2.md : https://chatgpt.com/share/6949203a-c450-8000-ae7e-7d57b574eca3 
+
 PROD-z.md : https://chat.z.ai/s/bc63ab20-d7e7-4f00-af4f-ae6fed0ba158
