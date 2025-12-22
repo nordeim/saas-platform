@@ -2141,3 +2141,139 @@ Tune these with baseline data in first 2 weeks post-launch.
 4. **Wire up monitoring** for the thresholds above in staging (Sentry + Prometheus + Grafana dashboards).
 5. **Create the first 3 A/B experiments** (headline variant, pricing CTA wording, “Recommended” badge prominence) and add to the measurement backlog — map to `cta_click` and `trial_started` as success metrics.
 6. **Publish RACI** (replace role placeholders with actual team members) and share with stakeholders.
+
+---
+
+
+
+# Phase 1: Comparative Analysis & Assessment
+
+I have meticulously reviewed the provided **PRD-q-2.md** (NexusCore) against the previous strategic plan and the specific technical capabilities of the Django 6.0 release.
+
+Below is a comprehensive assessment.
+
+---
+
+## Executive Summary
+**Verdict:** The provided PRD is a **highly pragmatic, detailed, and production-ready** document. It excels in architectural definition (Database schema, API surface, Idempotency) and operational compliance (PDPA, Stripe webhooks).
+
+However, regarding the **"Meticulous"** application of the absolute latest technologies, the PRD operates in a **"Safe Compatibility Mode"**. While it specifies Django 6.0, it utilizes traditional configurations (Celery `@shared_task`, Manual CSP settings) rather than adopting the new native frameworks (`django.tasks`, `ContentSecurityPolicyMiddleware`) introduced in this version.
+
+**Overall Rating:** 9/10 for Execution Detail; 7/10 for bleeding-edge Django 6.0 adoption.
+
+---
+
+## Phase 2: Deep Dive Technical Assessment
+
+### 1. Technical Architecture (Django 6.0 Specifics)
+
+| Feature | PRD-q-2.md Approach | New Django 6.0 Capability | Assessment |
+| :--- | :--- | :--- | :--- |
+| **Task Processing** | Uses `@shared_task` and standard `CELERY_` settings. | Native `django.tasks` framework (`@task` decorator). | **Gap:** The PRD misses the opportunity to simplify code using the native Tasks API. It relies on the "old way" of defining Celery tasks, which adds boilerplate. |
+| **Security (CSP)** | Uses a dictionary `CSP_DEFAULT_SRC` (likely intended for `django-csp` or custom middleware). | Native `ContentSecurityPolicyMiddleware` + `django.utils.csp`. | **Gap:** The PRD implements CSP manually. Django 6.0 handles this natively with better performance and integration. The PRD approach introduces unnecessary dependency or manual header management. |
+| **Database Health** | Explicitly sets `CONN_HEALTH_CHECKS = True`. | (Native feature adopted correctly). | **Strength:** Correctly utilizes the new connection health check feature. |
+| **Email Handling** | Uses standard `send_mail`. | Modern `EmailMessage` API (mandatory in 6.0). | **Neutral:** The code snippets are abstract enough to pass, but lack explicit refactoring for the `policy` argument introduced in 6.0. |
+| **Async Views** | Uses `async def cancel(self, request...)`. | (Native feature adopted correctly). | **Strength:** Excellent use of Django 6.0's async view capabilities in `SubscriptionViewSet`. |
+
+### 2. Scope & Business Logic
+
+*   **Strength - Idempotency:** The PRD meticulously implements `Idempotency-Key` handling in the Subscription API. This is a critical production detail often missed by junior engineers.
+*   **Strength - Event Taxonomy:** The table in Section 5 is exemplary. It defines specific events (`demo_request_submitted`, `invoice_paid`) with acceptance criteria, which is vital for GA4 tracking integration.
+*   **Strength - PDPA Compliance:** The inclusion of specific DSAR (Data Subject Access Request) endpoints (`/api/v1/dsar/export/`) and the retention policy logic is perfectly tailored for the Singaporean context.
+
+### 3. Data Model & Database
+
+*   **Strength:** The use of `PostgreSQL 16` and `JSONField` is optimal for SaaS flexibility.
+*   **Strength:** The specific SQL Indexes (e.g., `idx_subscriptions_active_org`) demonstrate deep database knowledge. Using partial indexes (`WHERE status = 'active'`) significantly optimizes storage and performance.
+*   **Observation:** The models are robust but do not leverage Django 6.0's new `Constraint.check()` method for runtime validation (e.g., checking if `trial_ends_at` is in the future), relying instead on standard model validation.
+
+### 4. Design System (Frontend)
+
+*   **Aesthetic Alignment:** The PRD defines a "Primary Blue" (`#007bff`) palette. While clean, it is more "Bootstrap Default" than "Elementra." To match the *visual* request for Elementra (Gradients, Dark Mode, Glassmorphism), the Tailwind config in Section 9 is under-specified.
+*   **Component Quality:** The React components provided (`PricingCard`, `DSARForm`) are accessible (ARIA labels) and clean. However, they lack the specific "Bento Grid" and "Glass" styling cues identified in the design analysis phase.
+
+---
+
+## Phase 3: Comparative Matrix (My Plan vs. PRD-q-2.md)
+
+| Dimension | My Previous Plan | PRD-q-2.md (Provided) | Winner |
+| :--- | :--- | :--- | :--- |
+| **Strategic Vision** | High-level focus on "Corporate Glass" & Modernization. | Detailed focus on Lead Capture & Billing reliability. | **Tie** (Different goals) |
+| **Django 6.0 Adoption** | **Aggressive:** Native CSP, Native Tasks API. | **Conservative:** Standard Celery, Manual CSP. | **My Plan** (for tech relevance) |
+| **Database Depth** | High-level schema. | **Specific:** SQL partial indexes, concurrency handling. | **PRD-q-2.md** (for implementation detail) |
+| **Code Snippets** | Theoretical config. | **Concrete:** ViewSets, Serializers, Tasks. | **PRD-q-2.md** |
+| **Compliance** | General PDPA mention. | **Specific:** DSAR workflows, Data retention SQL. | **PRD-q-2.md** |
+| **Frontend Design** | Abstract Elementra cues. | Clean, functional React components (Standard SaaS look). | **My Plan** (for visual fidelity) |
+
+---
+
+## Phase 4: Recommendations for Refinement
+
+To make this PRD truly **Meticulous** and aligned with the "Django 6.0 + Elementra" vision, I recommend the following specific modifications:
+
+### 1. Upgrade to Native Django 6.0 CSP
+**Current PRD:**
+```python
+CSP_DEFAULT_SRC = ("'self'",)
+# (Implied manual middleware)
+```
+
+**Recommended Change:**
+Remove manual CSP settings and adopt the native middleware to reduce code and increase security.
+```python
+MIDDLEWARE = [
+    # ...
+    'django.middleware.csp.ContentSecurityPolicyMiddleware',
+]
+SECURE_CSP = {
+    "default-src": [django.utils.csp.SELF],
+    "script-src": [django.utils.csp.SELF, django.utils.csp.NONCE],
+}
+```
+
+### 2. Modernize Task Definitions
+**Current PRD:**
+```python
+@shared_task(bind=True, max_retries=3)
+def process_stripe_webhook(self, payload, signature):
+    # ...
+```
+
+**Recommended Change:**
+Utilize the new `django.tasks` API for cleaner definitions (while keeping Celery as the backend runner).
+```python
+from django.tasks import task
+
+@task
+def process_stripe_webhook(payload, signature):
+    # logic
+```
+
+### 3. Enhance Design System (Elementra Alignment)
+**Current PRD:**
+Basic Tailwind config with flat colors.
+
+**Recommended Change:**
+Extend Tailwind config to match the "Elementra" aesthetic requested.
+```javascript
+theme: {
+  extend: {
+    backgroundImage: {
+      'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+    },
+    colors: {
+      // Add specific glassmorphism utilities
+      glass: 'rgba(255, 255, 255, 0.05)',
+    }
+  }
+}
+```
+
+### 4. Add `Constraint.check()` to Models
+Leverage the new Django 6.0 feature in the `Subscription` model to ensure business logic integrity at the DB level.
+
+---
+
+# Conclusion
+
+The provided **PRD-q-2.md** is an **excellent foundation** for engineering execution. It is "Pragmatic" and "Production-Ready." However, to fulfill the **"Cutting Edge"** requirement of the prompt, it requires minor refactoring to embrace the native capabilities of Django 6.0 (CSP and Tasks) rather than treating Django 6.0 as just a version number bump.
