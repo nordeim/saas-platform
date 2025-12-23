@@ -4802,4 +4802,313 @@ This comprehensive PRD synthesizes the engineering rigor of PRD-q-2 with the des
 4. **Operational Reliability:** Automated deployment, backup strategies, incident response
 5. **Business Focus:** Clear KPIs, conversion optimization, and growth targets
 
-The 12-week implementation plan provides a realistic timeline with clear milestones, while the risk management and monitoring strategies ensure production stability. This PRD serves as a complete guide for engineering teams to build and launch a successful SaaS platform in the Singapore market.
+---
+
+# Evaluation and Improvements
+
+I have meticulously analyzed the three provided Project Requirement Documents (PRDs): **PRD-q-2**, **PRD-z7**, and **PRD-d-3**. Below is the comprehensive comparative assessment of their architectural depth, technical relevance (specifically Django 6.0), and operational maturity.
+
+### 1. Executive Comparison Summary
+
+The three documents represent an evolutionary leap in technical specification:
+
+*   **PRD-q-2 (The Operational Baseline):** This document focuses on **Business Logic and Operations**. Its strength lies in defining User Journeys, Event Taxonomies, and the "Acceptance Matrix." It is excellent for Product Managers and QA teams but lacks deep code-level specifics for the new technology stack.
+*   **PRD-z7 (The Technical Specification):** This version pivots to **Engineering Implementation**. It introduces concrete Python code, Pytest fixtures, and Cypress tests. It attempts to define the "Elementra" design system via Tailwind classes. However, its adoption of Django 6.0 features is partial, relying on traditional patterns (manual CSP) rather than native ones.
+*   **PRD-d-3 (The Pragmatic Synthesis):** This is the **Superior Artifact**. It successfully merges the operational rigor of q-2 with the technical depth of z7. Crucially, it is the only one that **truly embraces Django 6.0**, implementing native Connection Health Checks, native CSP Middleware, and modern Password Hashing (`PBKDF2` iteration increases).
+
+### 2. Feature Comparison Matrix
+
+| Feature | PRD-q-2 (Baseline) | PRD-z7 (Tech Spec) | PRD-d-3 (Synthesis) |
+| :--- | :--- | :--- | :--- |
+| **Django 6.0 CSP** | Manual Config (Dictionary) | Manual Middleware | **Native `ContentSecurityPolicyMiddleware`** |
+| **Database features** | Standard Models | SQL Partial Indexes | **SQL Indexes + Constraints + Health Checks** |
+| **Design System** | Abstract "Elementra" | Basic Tailwind Config | **Performance-Budgeted Glassmorphism** |
+| **Compliance** | General PDPA | DSAR Endpoints | **Automated Retention/Anonymization Jobs** |
+| **Testing** | Concept Only | Pytest + Cypress Code | **Load Testing (k6) + E2E + Unit** |
+| **Infrastructure** | Standard Docker | Kubernetes Manifests | **Production-Ready Docker Compose + HA** |
+
+### 3. Critical Assessment & "The Missing Piece"
+
+While **PRD-d-3** is exceptional, my analysis reveals a specific opportunity to further "re-imagine" this for the Singapore market. The current synthesis treats Singaporean localization (GST, UEN) as field attributes. A truly "Meticulous" implementation would leverage **Django 6.0's `GeneratedField`** to handle complex GST calculations at the database layer (PostgreSQL 16), ensuring absolute financial data integrity without application-layer rounding errors.
+
+---
+
+# Refined Project Requirements Document (PRD)
+
+Based on the analysis, I have re-imagined the project as **SingaFlow** (Singapore Business Orchestration). This PRD pushes the Django 6.0 architecture to the bleeding edge while enforcing the visual elegance of Elementra.
+
+```markdown
+# Project Requirements Document: SingaFlow
+**The Intelligent Business OS for Singapore SMEs**
+
+**Version:** 4.0 (Bleeding Edge)
+**Date:** December 2025
+**Region:** Singapore (SG)
+**Stack:** Django 6.0 | Next.js 14 | PostgreSQL 16 | Redis 7.4
+
+---
+
+## 1. Executive Summary
+**SingaFlow** is a cloud-native ERP & Marketing platform designed for Singapore's high-compliance business environment. It synthesizes the **Elementra** "Corporate Glass" aesthetic with a rigorous **Django 6.0** backend.
+
+**Core Value Proposition:**
+1.  **Visual Trust:** A "Glassmorphism" UI that feels lightweight yet enterprise-grade.
+2.  **Regulatory Automation:** Native handling of SG GST (9%), UEN validation via ACRA API logic, and PDPA data governance.
+3.  **Hyper-Performance:** Leveraging Django 6.0 `GeneratedField` for in-database financial calculations and native CSP for security.
+
+---
+
+## 2. Technical Architecture & Stack
+
+### 2.1 Backend: Django 6.0 (Bleeding Edge)
+We utilize the absolute latest features released in Dec 2025:
+*   **Native CSP:** `django.middleware.csp.ContentSecurityPolicyMiddleware`.
+*   **DB Computed Columns:** `GeneratedField` for GST and Totals (offloading math to Postgres 16).
+*   **Connection Health:** `CONN_HEALTH_CHECKS = True`.
+*   **Async ORM:** Fully async views for high-concurrency dashboards.
+
+### 2.2 Frontend: Next.js 14 + Elementra Design System
+*   **Visual Language:** "Elementra" (Deep gradients, 8px/16px glass blur, Bento-grid layouts).
+*   **Performance Budget:** Critical CSS < 15KB, LCP < 2.0s.
+
+### 2.3 Infrastructure
+*   **Database:** PostgreSQL 16 (Required for `GeneratedField` persistence).
+*   **Cache:** Redis 7.4 (Broker + Cache).
+*   **Containerization:** Docker Compose (Dev) / ECS Fargate (Prod).
+
+---
+
+## 3. Detailed Data Models (The "Meticulous" Upgrade)
+
+We replace standard fields with **Django 6.0 GeneratedFields** to guarantee financial accuracy and performance.
+
+### 3.1 Organizations & Compliance
+```python
+import uuid
+from django.db import models
+from django.core.validators import RegexValidator
+from django.utils.translation import gettext_lazy as _
+
+class Organization(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    
+    # Singapore UEN Validation
+    uen = models.CharField(
+        max_length=15, 
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex=r'^[0-9]{8}[A-Z]$|^[0-9]{9}[A-Z]$|^[TSRQ][0-9]{2}[A-Z0-9]{4}[0-9]{3}[A-Z]$',
+                message="Enter a valid Singapore UEN."
+            )
+        ],
+        help_text="Unique Entity Number (ACRA)"
+    )
+    
+    is_gst_registered = models.BooleanField(default=False)
+    gst_reg_number = models.CharField(max_length=20, blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [models.Index(fields=['uen'])]
+```
+
+### 3.2 Financial Models with `GeneratedField` (Django 6.0 + Postgres 16)
+This implementation ensures that Tax and Total calculations happen *inside* the database, eliminating float rounding errors in Python.
+
+```python
+class Invoice(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT)
+    
+    # Monetary values stored in Cents (Integer)
+    subtotal_cents = models.BigIntegerField(
+        help_text="Net amount before tax in cents"
+    )
+    
+    # 9% GST Rate (Singapore 2024/2025)
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=4, default=0.0900)
+    
+    # DJANGO 6.0 FEATURE: Database-computed Tax Amount
+    # Calculates: subtotal * tax_rate, rounded to nearest cent
+    tax_amount_cents = models.GeneratedField(
+        expression=models.Func(
+            models.F('subtotal_cents') * models.F('tax_rate'),
+            function='ROUND',
+            output_field=models.BigIntegerField()
+        ),
+        output_field=models.BigIntegerField(),
+        db_persist=True
+    )
+    
+    # DJANGO 6.0 FEATURE: Database-computed Total
+    total_amount_cents = models.GeneratedField(
+        expression=models.F('subtotal_cents') + models.F('tax_amount_cents'),
+        output_field=models.BigIntegerField(),
+        db_persist=True
+    )
+    
+    status = models.CharField(
+        max_length=20, 
+        choices=[('draft', 'Draft'), ('paid', 'Paid'), ('overdue', 'Overdue')],
+        default='draft'
+    )
+    
+    # Performance Indexing
+    class Meta:
+        indexes = [
+            models.Index(fields=['status', 'organization']),
+            # Partial index for overdue invoices
+            models.Index(
+                fields=['created_at'],
+                condition=models.Q(status='overdue'),
+                name='idx_overdue_invoices'
+            )
+        ]
+```
+
+---
+
+## 4. Security & Compliance (PDPA)
+
+### 4.1 Native CSP Implementation
+Using Django 6.0's middleware to prevent XSS, tailored for Stripe/PayNow.
+
+```python
+# settings.py
+
+MIDDLEWARE = [
+    # ...
+    'django.middleware.csp.ContentSecurityPolicyMiddleware', # Native in 6.0
+]
+
+from django.utils.csp import CSP
+
+SECURE_CSP = {
+    "default-src": [CSP.SELF],
+    "script-src": [
+        CSP.SELF, 
+        "https://js.stripe.com", 
+        "https://cdn.singpass.gov.sg", # SingPass API for future login
+    ],
+    "connect-src": [
+        CSP.SELF, 
+        "https://api.stripe.com",
+    ],
+    "img-src": [CSP.SELF, "data:", "https://*.s3.amazonaws.com"],
+    "style-src": [CSP.SELF, CSP.UNSAFE_INLINE], # Required for dynamic Tailwind
+}
+```
+
+### 4.2 Automated Data Anonymization (PDPA Retention)
+A Celery task to strictly enforce the "7-year financial retention" vs "2-year marketing retention" rule.
+
+```python
+from django.tasks import task # Hypothetical native task or shared_task
+from django.utils import timezone
+from dateutil.relativedelta import relativedelta
+
+@shared_task
+def enforce_pdpa_retention():
+    # 1. Marketing Leads: Delete after 2 years of inactivity
+    cutoff = timezone.now() - relativedelta(years=2)
+    deleted_count, _ = Lead.objects.filter(
+        status='disqualified', 
+        updated_at__lt=cutoff
+    ).delete()
+    
+    # 2. Financial Data: Anonymize User PII but keep Invoice Data (7 Years)
+    # We don't delete invoices (IRAS requirement), but we scrub the user link if needed
+    # This logic would be more complex in production
+    return f"PDPA Cleanup: Removed {deleted_count} stale leads."
+```
+
+---
+
+## 5. Visual Design System: "Elementra Singapore"
+
+We define specific Tailwind classes to achieve the "Corporate Glass" look.
+
+### 5.1 Tailwind Config
+```javascript
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        'sg-red': '#ED2939', // Official SG Flag Red
+        'tech-blue': {
+          500: '#3B82F6',
+          900: '#0F172A',
+        },
+        'glass-border': 'rgba(255, 255, 255, 0.08)',
+      },
+      backgroundImage: {
+        'glass-gradient': 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)',
+        'hero-glow': 'conic-gradient(from 180deg at 50% 50%, #ED2939 0deg, #3B82F6 180deg, #ED2939 360deg)',
+      },
+      backdropBlur: {
+        'glass': '12px',
+      }
+    }
+  }
+}
+```
+
+### 5.2 React Component: The "Glass" Card
+```jsx
+export function GlassCard({ children, className }) {
+  return (
+    <div className={`
+      relative overflow-hidden
+      bg-glass-gradient backdrop-blur-glass
+      border border-glass-border
+      rounded-2xl shadow-xl
+      hover:shadow-2xl hover:border-white/20 transition-all duration-300
+      ${className}
+    `}>
+      {/* Noise texture overlay for premium feel */}
+      <div className="absolute inset-0 bg-noise opacity-[0.03] pointer-events-none" />
+      {children}
+    </div>
+  )
+}
+```
+
+---
+
+## 6. API & Integration Plan
+
+### 6.1 Endpoints (DRF + Async)
+*   `POST /api/v1/auth/singpass-login/`: Integration with SingPass OIDC (Future proofing).
+*   `GET /api/v1/invoices/gst-report/`: Aggregates `tax_amount_cents` via `GeneratedField` for IRAS submission.
+*   `POST /api/v1/billing/paynow-qr/`: Generates PayNow QR code via Stripe Sources.
+
+### 6.2 Idempotency
+Implementation of `Idempotency-Key` header middleware to prevent double-charging on PayNow transactions, which are instant and irreversible.
+
+---
+
+## 7. Implementation Roadmap (Fast-Track)
+
+### Phase 1: Core Foundation (Weeks 1-3)
+*   **Django 6.0 Setup:** Init project with `GeneratedField` support (Requires PG16).
+*   **Compliance DB:** Implement `Organization` model with UEN validation.
+*   **Design Ops:** Setup Next.js with Tailwind "Elementra" tokens.
+
+### Phase 2: Billing & GST (Weeks 4-7)
+*   **Invoice Engine:** Build `Invoice` model with DB-computed tax.
+*   **Stripe PayNow:** Implement PayNow Source payments and webhooks.
+*   **PDF Engine:** WeasyPrint generation of Tax Invoices (Must show GST Reg No).
+
+### Phase 3: Growth & Analytics (Weeks 8-10)
+*   **Dashboard:** Build "Glass" dashboard using Recharts.
+*   **Lead Gen:** Implement Landing Pages with Hero Glow effects.
+*   **PDPA Automation:** Deploy retention tasks.
+
+### Phase 4: Production (Weeks 11-12)
+*   **Load Testing:** k6 tests on Async views.
+*   **Security Audit:** Verify CSP headers and data access logs.
+*   **Launch.**
