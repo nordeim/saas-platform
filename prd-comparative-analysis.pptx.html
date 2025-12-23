@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD Comparative Analysis: NexusCore v3.0 vs v3.1</title>
+    <script src="https://statics.moonshot.cn/kimi-ppt/html-gen/static/tailwindcss@4_0805.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .ppt-slide {
+                @apply relative w-[1280px] h-[720px] mx-auto p-[40px] box-border overflow-hidden mb-[40px];
+            }
+        }
+    </style>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 py-8">
+
+    <!-- Slide 1: Executive Summary -->
+    <div class="ppt-slide !bg-[#1e293b]" type="executive_summary">
+        <img src="prd-comparison-diagram.png" alt="PRD Comparison" class="absolute inset-0 w-full h-full object-cover opacity-20">
+        <div class="absolute inset-0 bg-gradient-to-br from-[#1e293b]/95 via-[#334155]/90 to-[#475569]/95"></div>
+        
+        <div class="relative h-full flex flex-col justify-center">
+            <div class="mb-8">
+                <div class="inline-block px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-lg mb-6">
+                    <span class="text-red-400 font-semibold tracking-wide">TECHNICAL ASSESSMENT</span>
+                </div>
+                <h1 class="text-6xl font-bold text-white mb-4 leading-tight">
+                    PRD Comparative Analysis
+                </h1>
+                <p class="text-2xl text-gray-300 mb-6">
+                    NexusCore v3.0 vs v3.1: Strategic Synthesis for Singapore Market
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-6 mb-8">
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-check-circle text-green-400 text-xl"></i>
+                        <h3 class="text-white font-semibold">Strategic Assessment</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm">User's analysis of Singapore market fit is <strong class="text-green-400">ACCURATE</strong></p>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-exclamation-triangle text-yellow-400 text-xl"></i>
+                        <h3 class="text-white font-semibold">Technical Gap</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm">Critical dependencies identified requiring <strong class="text-yellow-400">HYBRID APPROACH</strong></p>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fas fa-lightbulb text-blue-400 text-xl"></i>
+                        <h3 class="text-white font-semibold">Recommendation</h3>
+                    </div>
+                    <p class="text-gray-300 text-sm">Synthesize both PRDs for <strong class="text-blue-400">OPTIMAL SOLUTION</strong></p>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center text-gray-400 text-sm">
+                <span>Assessment Date: December 23, 2025</span>
+                <span>Django 6.0 | PostgreSQL 16 | Singapore Market</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2: Comparative Framework -->
+    <div class="ppt-slide" type="comparative_framework">
+        <div class="mb-6">
+            <p class="text-base font-semibold tracking-wider text-blue-600 mb-2">COMPARATIVE ASSESSMENT</p>
+            <h2 class="text-5xl font-bold text-slate-900">Seven-Dimension Analysis Framework</h2>
+        </div>
+        
+        <div class="grid grid-cols-7 gap-3 mb-6">
+            <div class="text-center p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                <i class="fas fa-microchip text-blue-600 text-2xl mb-2"></i>
+                <h3 class="font-semibold text-slate-900 text-sm mb-1">Technical Architecture</h3>
+                <p class="text-xs text-slate-600 leading-tight">Django 6.0 patterns & production readiness</p>
+            </div>
+            
+            <div class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                <i class="fas fa-shield-alt text-green-600 text-2xl mb-2"></i>
+                <h3 class="font-semibold text-slate-900 text-sm mb-1">Compliance Integration</h3>
+                <p class="text-xs text-slate-600 leading-tight">PDPA automation vs workflow docs</p>
+            </div>
+            
+            <div class="text-center p-4 bg-red-50 rounded-lg border-2 border-red-200">
+                <i class="fas fa-flag text-red-600 text-2xl mb-2"></i>
+                <h3 class="font-semibold text-slate-900 text-sm mb-1">Singapore Localization</h3>
+                <p class="text-xs text-slate-600 leading-tight">UEN, GST, IRAS compliance depth</p>
+            </div>
+            
+            <div class="text-center p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                <i class="fas fa-database text-purple-600 text-2xl mb-2"></i>
+                <h3 class="font-semibold text-slate-900 text-sm mb-1">Data Architecture</h3>
+                <p class="text-xs text-slate-600 leading-tight">Database vs app-level calculations</p>
+            </div>
+            
+            <div class="text-center p-4 bg-orange-50 rounded-lg border-2 border-orange-200">
+                <i class="fas fa-vial text-orange-600 text-2xl mb-2"></i>
+                <h3 class="font-semibold text-slate-900 text-sm mb-1">Testing Strategy</h3>
+                <p class="text-xs text-slate-600 leading-tight">Domain-specific vs general testing</p>
+            </div>
+            
+            <div class="text-center p-4 bg-teal-50 rounded-lg border-2 border-teal-200">
+                <i class="fas fa-server text-teal-600 text-2xl mb-2"></i>
+                <h3 class="font-semibold text-slate-900 text-sm mb-1">Infrastructure</h3>
+                <p class="text-xs text-slate-600 leading-tight">Jurisdiction-aware operations</p>
+            </div>
+            
+            <div class="text-center p-4 bg-indigo-50 rounded-lg border-2 border-indigo-200">
+                <i class="fas fa-calendar-alt text-indigo-600 text-2xl mb-2"></i>
+                <h3 class="font-semibold text-slate-900 text-sm mb-1">Project Planning</h3>
+                <p class="text-xs text-slate-600 leading-tight">Risk mitigation & execution clarity</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">d3</div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900">PRD-d-3 (v3.0)</h3>
+                        <p class="text-slate-600">"The Meticulously Pragmatic Synthesis"</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900">Production Infrastructure</p>
+                            <p class="text-slate-600 text-sm">Complete idempotency, webhook handling, monitoring</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900">Django 6.0 Mastery</p>
+                            <p class="text-slate-600 text-sm">Connection health checks, native CSP, async views</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900">Operational Excellence</p>
+                            <p class="text-slate-600 text-sm">RACI matrix, budget allocation, risk quantification</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-times-circle text-red-500 mt-1"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900">Singapore Gaps</p>
+                            <p class="text-slate-600 text-sm">Basic GST handling, no UEN validation, limited trust signals</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">q3</div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900">PRD-q-3 (v3.1)</h3>
+                        <p class="text-slate-600">"Singapore-Ready Implementation"</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900">Regulatory Intelligence</p>
+                            <p class="text-slate-600 text-sm">Database-level GST, UEN validation, IRAS codes</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900">Automated Compliance</p>
+                            <p class="text-slate-600 text-sm">PDPA retention policies, differential data handling</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900">Market Trust Signals</p>
+                            <p class="text-slate-600 text-sm">SGD-red branding, compliance badges, local identity</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-times-circle text-red-500 mt-1"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900">Infrastructure Gaps</p>
+                            <p class="text-slate-600 text-sm">Missing idempotency model, incomplete email config</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3: Critical Technical Assessment -->
+    <div class="ppt-slide" type="technical_assessment">
+        <div class="mb-4">
+            <p class="text-base font-semibold tracking-wider text-blue-600 mb-2">TECHNICAL DEEP DIVE</p>
+            <h2 class="text-4xl font-bold text-slate-900">Django 6.0 Implementation Analysis</h2>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <div class="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-star text-yellow-500"></i>
+                        PRD-q-3 Game-Changing Feature
+                    </h3>
+                    
+                    <div class="bg-slate-900 rounded-lg p-4 font-mono text-sm">
+                        <div class="text-gray-400 mb-2"># Database-computed GST Amount</div>
+                        <div class="text-blue-300">gst_amount_cents</div> <span class="text-white">=</span> <span class="text-green-300">models.GeneratedField</span><span class="text-white">(</span>
+                        <div class="ml-4 text-yellow-300">expression=<span class="text-green-300">models.Func</span><span class="text-white">(</span></div>
+                        <div class="ml-8 text-purple-300">models.F<span class="text-white">(</span><span class="text-orange-300">'subtotal_cents'</span><span class="text-white">)</span></div>
+                        <div class="ml-8 text-white">*</div>
+                        <div class="ml-8 text-purple-300">models.F<span class="text-white">(</span><span class="text-orange-300">'gst_rate'</span><span class="text-white">)</span>,</div>
+                        <div class="ml-8 text-yellow-300">function=<span class="text-orange-300">'ROUND'</span>,</div>
+                        <div class="ml-4 text-white">)</span>,</div>
+                        <div class="ml-4 text-yellow-300">db_persist=<span class="text-purple-300">True</span></div>
+                        <div class="text-white">)</span></div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p class="text-sm text-green-800">
+                            <strong>Why This Matters:</strong> Database-level calculations eliminate rounding errors and ensure IRAS compliance integrity that application code cannot guarantee.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-red-50 rounded-xl p-5 border border-red-200">
+                    <h3 class="text-xl font-bold text-red-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Critical Gap Identified
+                    </h3>
+                    
+                    <div class="space-y-2">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-times-circle text-red-500 mt-1"></i>
+                            <div>
+                                <p class="font-semibold text-slate-900">Missing IdempotencyRecord Model</p>
+                                <p class="text-slate-600 text-sm">PRD-q-3 references but doesn't define this critical model</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-times-circle text-red-500 mt-1"></i>
+                            <div>
+                                <p class="font-semibold text-slate-900">Incomplete Email Configuration</p>
+                                <p class="text-slate-600 text-sm">SendGrid integration mentioned but not fully configured</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-times-circle text-red-500 mt-1"></i>
+                            <div>
+                                <p class="font-semibold text-slate-900">Missing WebhookEvent Model</p>
+                                <p class="text-slate-600 text-sm">Stripe webhook processing depends on undefined model</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fas fa-balance-scale text-blue-500"></i>
+                        Compliance Architecture Comparison
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-semibold text-slate-900 mb-2">PRD-d-3: Documented Compliance</h4>
+                            <div class="bg-slate-100 rounded-lg p-3 text-sm">
+                                <p class="text-slate-700">• DSAR workflow definitions</p>
+                                <p class="text-slate-700">• Manual approval processes</p>
+                                <p class="text-slate-700">• PDPA workflow documentation</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-semibold text-slate-900 mb-2">PRD-q-3: Automated Enforcement</h4>
+                            <div class="bg-green-100 rounded-lg p-3 text-sm">
+                                <p class="text-slate-700">• Scheduled retention tasks</p>
+                                <p class="text-slate-700">• Differential data policies (2yr/7yr)</p>
+                                <p class="text-slate-700">• Judicial anonymization logic</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 rounded-xl p-5 border border-blue-200">
+                    <h3 class="text-xl font-bold text-blue-900 mb-3 flex items-center gap-2">
+                        <i class="fas fa-chart-line"></i>
+                        Performance & Reliability Metrics
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="text-center p-3 bg-white rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">99.9%</div>
+                            <div class="text-sm text-slate-600">Payment Success Rate</div>
+                        </div>
+                        
+                        <div class="text-center p-3 bg-white rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">≤72hrs</div>
+                            <div class="text-sm text-slate-600">DSAR SLA Target</div>
+                        </div>
+                        
+                        <div class="text-center p-3 bg-white rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600">≤2.5s</div>
+                            <div class="text-sm text-slate-600">Mobile LCP Target</div>
+                        </div>
+                        
+                        <div class="text-center p-3 bg-white rounded-lg">
+                            <div class="text-2xl font-bold text-orange-600">100%</div>
+                            <div class="text-sm text-slate-600">IRAS Compliance</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 4: Risk Assessment Matrix -->
+    <div class="ppt-slide" type="risk_assessment">
+        <div class="mb-4">
+            <p class="text-base font-semibold tracking-wider text-red-600 mb-2">RISK ANALYSIS</p>
+            <h2 class="text-4xl font-bold text-slate-900">Silent Failures & Integration Risks</h2>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <div class="bg-red-50 rounded-xl p-4 border-2 border-red-200">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center text-white font-bold">CRITICAL</div>
+                    <h3 class="font-bold text-red-900">Idempotency Gap</h3>
+                </div>
+                <p class="text-sm text-slate-700 mb-2">PRD-q-3 references IdempotencyRecord but doesn't define the model</p>
+                <div class="bg-red-100 rounded-lg p-2 text-xs font-mono">
+                    NameError: IdempotencyRecord not defined
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 rounded-xl p-4 border-2 border-yellow-200">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center text-white font-bold">HIGH</div>
+                    <h3 class="font-bold text-yellow-900">Email Configuration</h3>
+                </div>
+                <p class="text-sm text-slate-700 mb-2">Incomplete SendGrid integration settings</p>
+                <div class="bg-yellow-100 rounded-lg p-2 text-xs font-mono">
+                    Runtime email delivery failures
+                </div>
+            </div>
+
+            <div class="bg-orange-50 rounded-xl p-4 border-2 border-orange-200">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center text-white font-bold">MED</div>
+                    <h3 class="font-bold text-orange-900">Frontend Colors</h3>
+                </div>
+                <p class="text-sm text-slate-700 mb-2">singapore-red color not in Tailwind config</p>
+                <div class="bg-orange-100 rounded-lg p-2 text-xs font-mono">
+                    Build-time CSS compilation error
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-shield-alt text-blue-500"></i>
+                Dependency Mapping Analysis
+            </h3>
+            
+            <div class="overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-slate-100">
+                            <th class="text-left p-2 font-semibold text-slate-900">Component</th>
+                            <th class="text-center p-2 font-semibold text-slate-900">PRD-d-3</th>
+                            <th class="text-center p-2 font-semibold text-slate-900">PRD-q-3</th>
+                            <th class="text-center p-2 font-semibold text-slate-900">Risk Level</th>
+                            <th class="text-left p-2 font-semibold text-slate-900">Mitigation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-slate-200">
+                            <td class="p-2 font-medium">IdempotencyRecord Model</td>
+                            <td class="p-2 text-center"><span class="text-green-600">✅ Defined</span></td>
+                            <td class="p-2 text-center"><span class="text-red-600">❌ Missing</span></td>
+                            <td class="p-2 text-center"><span class="bg-red-100 text-red-800 px-2 py-1 rounded">CRITICAL</span></td>
+                            <td class="p-2">Import from PRD-d-3</td>
+                        </tr>
+                        <tr class="border-b border-slate-200 bg-slate-25">
+                            <td class="p-2 font-medium">WebhookEvent Model</td>
+                            <td class="p-2 text-center"><span class="text-green-600">✅ Defined</span></td>
+                            <td class="p-2 text-center"><span class="text-red-600">❌ Missing</span></td>
+                            <td class="p-2 text-center"><span class="bg-red-100 text-red-800 px-2 py-1 rounded">HIGH</span></td>
+                            <td class="p-2">Import from PRD-d-3</td>
+                        </tr>
+                        <tr class="border-b border-slate-200">
+                            <td class="p-2 font-medium">GST Calculation</td>
+                            <td class="p-2 text-center"><span class="text-orange-600">⚠️ Basic</span></td>
+                            <td class="p-2 text-center"><span class="text-green-600">✅ Database</span></td>
+                            <td class="p-2 text-center"><span class="bg-green-100 text-green-800 px-2 py-1 rounded">HIGH</span></td>
+                            <td class="p-2">Use PRD-q-3 approach</td>
+                        </tr>
+                        <tr class="border-b border-slate-200 bg-slate-25">
+                            <td class="p-2 font-medium">UEN Validation</td>
+                            <td class="p-2 text-center"><span class="text-red-600">❌ Not Present</span></td>
+                            <td class="p-2 text-center"><span class="text-green-600">✅ Regex + Validator</span></td>
+                            <td class="p-2 text-center"><span class="bg-green-100 text-green-800 px-2 py-1 rounded">MEDIUM</span></td>
+                            <td class="p-2">Use PRD-q-3 approach</td>
+                        </tr>
+                        <tr class="border-b border-slate-200">
+                            <td class="p-2 font-medium">Email Backend</td>
+                            <td class="p-2 text-center"><span class="text-green-600">✅ Configured</span></td>
+                            <td class="p-2 text-center"><span class="text-orange-600">⚠️ Incomplete</span></td>
+                            <td class="p-2 text-center"><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">MEDIUM</span></td>
+                            <td class="p-2">Use PRD-d-3 config</td>
+                        </tr>
+                        <tr class="bg-slate-25">
+                            <td class="p-2 font-medium">OrganizationMembership</td>
+                            <td class="p-2 text-center"><span class="text-green-600">✅ Detailed</span></td>
+                            <td class="p-2 text-center"><span class="text-orange-600">⚠️ Simplified</span></td>
+                            <td class="p-2 text-center"><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">LOW</span></td>
+                            <td class="p-2">Use PRD-d-3 approach</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-4">
+            <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                <h4 class="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    PRD-d-3 Advantages
+                </h4>
+                <ul class="text-sm text-slate-700 space-y-1">
+                    <li>• Complete infrastructure models</li>
+                    <li>• Production-ready configuration</li>
+                    <li>• Comprehensive monitoring</li>
+                    <li>• Detailed project management</li>
+                </ul>
+            </div>
+            
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <h4 class="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                    <i class="fas fa-star"></i>
+                    PRD-q-3 Advantages
+                </h4>
+                <ul class="text-sm text-slate-700 space-y-1">
+                    <li>• Database-enforced GST calculation</li>
+                    <li>• Singapore-specific validation</li>
+                    <li>• Automated compliance workflows</li>
+                    <li>• Market trust signals</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 5: Integration Strategy -->
+    <div class="ppt-slide" type="integration_strategy">
+        <div class="mb-4">
+            <p class="text-base font-semibold tracking-wider text-blue-600 mb-2">STRATEGIC SYNTHESIS</p>
+            <h2 class="text-4xl font-bold text-slate-900">The Strict Merge Strategy</h2>
+        </div>
+
+        <div class="flex gap-6 mb-4">
+            <div class="flex-1 bg-blue-50 rounded-xl p-5 border-2 border-blue-200">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">1</div>
+                    <div>
+                        <h3 class="text-xl font-bold text-blue-900">Foundation Layer</h3>
+                        <p class="text-blue-700 text-sm">From PRD-d-3 (Adopt Verbatim)</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-500 mt-1 text-sm"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900 text-sm">IdempotencyRecord Model</p>
+                            <p class="text-slate-600 text-xs">Complete duplicate prevention framework</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-500 mt-1 text-sm"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900 text-sm">WebhookEvent Model</p>
+                            <p class="text-slate-600 text-xs">Stripe webhook processing infrastructure</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-500 mt-1 text-sm"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900 text-sm">OrganizationMembership</p>
+                            <p class="text-slate-600 text-xs">Detailed RBAC with permissions</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-check text-blue-500 mt-1 text-sm"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900 text-sm">Django 6.0 Config</p>
+                            <p class="text-slate-600 text-xs">Email, CSP, connection health checks</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <img src="integration-strategy.png" alt="Integration Strategy" class="w-80 h-full object-cover rounded-xl border-2 border-slate-200">
+
+            <div class="flex-1 bg-green-50 rounded-xl p-5 border-2 border-green-200">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">2</div>
+                    <div>
+                        <h3 class="text-xl font-bold text-green-900">Enhancement Layer</h3>
+                        <p class="text-green-700 text-sm">From PRD-q-3 (Overwrite/Extend)</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-star text-green-500 mt-1 text-sm"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900 text-sm">Invoice with GeneratedField</p>
+                            <p class="text-slate-600 text-xs">Database-enforced GST calculation</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-star text-green-500 mt-1 text-sm"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900 text-sm">UEN Validation</p>
+                            <p class="text-slate-600 text-xs">Singapore entity number validation</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-star text-green-500 mt-1 text-sm"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900 text-sm">IRAS Transaction Codes</p>
+                            <p class="text-slate-600 text-xs">E-invoicing compliance fields</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-star text-green-500 mt-1 text-sm"></i>
+                        <div>
+                            <p class="font-semibold text-slate-900 text-sm">PDPA Automation</p>
+                            <p class="text-slate-600 text-xs">Retention policies and anonymization</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-purple-50 rounded-xl p-5 border-2 border-purple-200">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-xl">3</div>
+                <div>
+                    <h3 class="text-xl font-bold text-purple-900">Integration Bridge (Custom Development)</h3>
+                    <p class="text-purple-700 text-sm">Connect Foundation and Enhancement Layers</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-white rounded-lg p-4 border border-purple-200">
+                    <h4 class="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                        <i class="fas fa-link text-purple-500"></i>
+                        Task Integration
+                    </h4>
+                    <p class="text-slate-600 text-sm">Celery task using IdempotencyRecord (from d-3) for IRAS invoice generation (from q-3)</p>
+                </div>
+                
+                <div class="bg-white rounded-lg p-4 border border-purple-200">
+                    <h4 class="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                        <i class="fas fa-vial text-purple-500"></i>
+                        Validation Tests
+                    </h4>
+                    <p class="text-slate-600 text-sm">Verify GeneratedField GST calculation matches application-level logic for consistency</p>
+                </div>
+                
+                <div class="bg-white rounded-lg p-4 border border-purple-200">
+                    <h4 class="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                        <i class="fas fa-chart-line text-purple-500"></i>
+                        Enhanced Monitoring
+                    </h4>
+                    <p class="text-slate-600 text-sm">Combine PRD-d-3's metrics with PRD-q-3's compliance alerts and SLA tracking</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: Implementation Timeline -->
+    <div class="ppt-slide" type="implementation_timeline">
+        <div class="mb-4">
+            <p class="text-base font-semibold tracking-wider text-blue-600 mb-2">EXECUTION PLANNING</p>
+            <h2 class="text-4xl font-bold text-slate-900">Revised 12-Week Implementation Timeline</h2>
+        </div>
+
+        <div class="space-y-3">
+            <div class="flex gap-4 items-center">
+                <div class="w-16 h-16 bg-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    W1-3
+                </div>
+                <div class="flex-1 bg-blue-50 rounded-xl p-4 border-l-4 border-blue-500">
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Foundation & Infrastructure</h3>
+                    <div class="grid grid-cols-3 gap-3 text-sm">
+                        <div>
+                            <p class="font-semibold text-slate-900">From PRD-d-3:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• IdempotencyRecord model</li>
+                                <li>• WebhookEvent model</li>
+                                <li>• Django 6.0 configuration</li>
+                                <li>• Docker environment setup</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">From PRD-q-3:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• Singapore timezone defaults</li>
+                                <li>• Base User/Organization models</li>
+                                <li>• Elementra design system</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">Success Criteria:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• All tests passing</li>
+                                <li>• CI/CD pipeline functional</li>
+                                <li>• Development environment ready</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 items-center">
+                <div class="w-16 h-16 bg-green-500 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    W4-6
+                </div>
+                <div class="flex-1 bg-green-50 rounded-xl p-4 border-l-4 border-green-500">
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Singapore Compliance Engine</h3>
+                    <div class="grid grid-cols-3 gap-3 text-sm">
+                        <div>
+                            <p class="font-semibold text-slate-900">From PRD-q-3:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• GST GeneratedField implementation</li>
+                                <li>• UEN validation with ACRA format</li>
+                                <li>• IRAS transaction codes</li>
+                                <li>• PDPA retention policies</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">Integration Tasks:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• GST calculation validation tests</li>
+                                <li>• UEN validation API mock</li>
+                                <li>• Compliance monitoring setup</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">Success Criteria:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• IRAS compliance verified</li>
+                                <li>• GST calculations accurate</li>
+                                <li>• UEN validation working</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 items-center">
+                <div class="w-16 h-16 bg-purple-500 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    W7-8
+                </div>
+                <div class="flex-1 bg-purple-50 rounded-xl p-4 border-l-4 border-purple-500">
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Payment Systems & Integration</h3>
+                    <div class="grid grid-cols-3 gap-3 text-sm">
+                        <div>
+                            <p class="font-semibold text-slate-900">Hybrid Implementation:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• Stripe + PayNow integration</li>
+                                <li>• Idempotency with GST invoices</li>
+                                <li>• Webhook processing with compliance</li>
+                                <li>• Invoice PDF generation</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">Testing Focus:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• End-to-end payment flows</li>
+                                <li>• GST compliance verification</li>
+                                <li>• Webhook reliability testing</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">Success Criteria:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• Payment success rate ≥99.9%</li>
+                                <li>• GST invoices compliant</li>
+                                <li>• Webhooks processed reliably</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 items-center">
+                <div class="w-16 h-16 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    W9-10
+                </div>
+                <div class="flex-1 bg-orange-50 rounded-xl p-4 border-l-4 border-orange-500">
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Production Hardening & Monitoring</h3>
+                    <div class="grid grid-cols-3 gap-3 text-sm">
+                        <div>
+                            <p class="font-semibold text-slate-900">From PRD-d-3:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• Comprehensive monitoring setup</li>
+                                <li>• Performance testing with k6</li>
+                                <li>• Security audit & penetration test</li>
+                                <li>• Backup strategy implementation</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">From PRD-q-3:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• Compliance monitoring alerts</li>
+                                <li>• SLA tracking dashboards</li>
+                                <li>• PDPA retention validation</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">Success Criteria:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• LCP ≤2.5s achieved</li>
+                                <li>• Security vulnerabilities resolved</li>
+                                <li>• Compliance monitoring active</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 items-center">
+                <div class="w-16 h-16 bg-red-500 rounded-xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    W11-12
+                </div>
+                <div class="flex-1 bg-red-50 rounded-xl p-4 border-l-4 border-red-500">
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Launch & Optimization</h3>
+                    <div class="grid grid-cols-3 gap-3 text-sm">
+                        <div>
+                            <p class="font-semibold text-slate-900">Deployment:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• Blue-green deployment</li>
+                                <li>• Production smoke testing</li>
+                                <li>• 24/7 monitoring setup</li>
+                                <li>• Team training & handover</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">Validation:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• IRAS compliance verification</li>
+                                <li>• PDPA audit readiness</li>
+                                <li>• Performance optimization</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-slate-900">Success Criteria:</p>
+                            <ul class="text-slate-600 space-y-1">
+                                <li>• Zero-downtime deployment</li>
+                                <li>• All metrics within target</li>
+                                <li>• Regulatory compliance verified</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 7: Final Recommendation -->
+    <div class="ppt-slide !bg-[#1e293b]" type="final_recommendation">
+        <img src="integration-strategy.png" alt="Integration" class="absolute inset-0 w-full h-full object-cover opacity-10">
+        <div class="absolute inset-0 bg-gradient-to-br from-[#1e293b]/95 via-[#334155]/90 to-[#475569]/95"></div>
+        
+        <div class="relative h-full flex flex-col justify-center">
+            <div class="mb-6">
+                <div class="inline-block px-4 py-2 bg-green-500/20 border border-green-500/30 rounded-lg mb-4">
+                    <span class="text-green-400 font-semibold tracking-wide">FINAL ASSESSMENT</span>
+                </div>
+                <h2 class="text-5xl font-bold text-white mb-4 leading-tight">
+                    Validated Recommendation
+                </h2>
+                <p class="text-xl text-gray-300">
+                    User's Strategic Analysis Confirmed with Technical Corrections
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i class="fas fa-check-circle text-green-400 text-2xl"></i>
+                        <h3 class="text-xl font-bold text-white">Strategic Assessment</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        The user's conclusion that <strong class="text-green-400">PRD-q-3 is superior for Singapore deployment</strong> is strategically sound and well-reasoned.
+                    </p>
+                    <div class="bg-green-500/20 rounded-lg p-3 border border-green-500/30">
+                        <p class="text-green-300 text-sm">
+                            <strong>Validation:</strong> Exceptional domain understanding demonstrated through regulatory intelligence and compliance-first architecture.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i class="fas fa-wrench text-yellow-400 text-2xl"></i>
+                        <h3 class="text-xl font-bold text-white">Technical Correction</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        PRD-q-3 cannot be implemented standalone due to dependencies on PRD-d-3's infrastructure models.
+                    </p>
+                    <div class="bg-yellow-500/20 rounded-lg p-3 border border-yellow-500/30">
+                        <p class="text-yellow-300 text-sm">
+                            <strong>Critical Gap:</strong> IdempotencyRecord and WebhookEvent models are referenced but not defined in PRD-q-3.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-6">
+                <h3 class="text-2xl font-bold text-white mb-4 flex items-center gap-3">
+                    <i class="fas fa-lightbulb text-blue-400"></i>
+                    Optimal Path Forward: Hybrid Implementation
+                </h3>
+                
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-white/10 rounded-lg p-4">
+                        <h4 class="font-bold text-white mb-2">Foundation (PRD-d-3)</h4>
+                        <p class="text-gray-300 text-sm">Infrastructure, monitoring, idempotency, operational excellence</p>
+                    </div>
+                    
+                    <div class="bg-white/10 rounded-lg p-4">
+                        <h4 class="font-bold text-white mb-2">Enhancement (PRD-q-3)</h4>
+                        <p class="text-gray-300 text-sm">GST calculation, UEN validation, compliance automation, trust signals</p>
+                    </div>
+                    
+                    <div class="bg-white/10 rounded-lg p-4">
+                        <h4 class="font-bold text-white mb-2">Integration (Custom)</h4>
+                        <p class="text-gray-300 text-sm">Connect infrastructure with Singapore-specific domain logic</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center text-gray-400 text-sm">
+                <span>Assessment completed with meticulous technical validation</span>
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-check-circle text-green-400"></i>
+                    <span>Recommendation: Proceed with hybrid implementation</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
