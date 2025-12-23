@@ -1,0 +1,2378 @@
+Project Requirements Document (PRD)
+TechFlow Solutions - Enterprise SaaS Platform
+Version 2.0 | December 2025
+Pragmatic Architecture for Singapore Market
+Document Control
+Version	Date	Author	Changes
+2.0	2025-12-22	Technical Architect	Complete rewrite with Django 6.0, pragmatic architecture
+1.0	2024-12-22	Initial	Original PRD (superseded)
+Table of Contents
+Executive Summary
+Business Requirements
+Technical Architecture
+Technology Stack
+Database Architecture
+Backend Architecture
+Frontend Architecture
+Security Architecture
+Singapore Compliance
+Infrastructure & Deployment
+Development Standards
+Testing Strategy
+Project Timeline
+Cost Analysis
+Risk Management
+Appendices
+1. Executive Summary
+1.1 Project Overview
+TechFlow Solutions is building a modern SaaS platform for enterprise workflow automation, targeting the Singapore and APAC markets. This PRD defines a pragmatic, achievable architecture that balances technical excellence with resource constraints, leveraging the latest Django 6.0 features released December 3, 2025.
+
+1.2 Key Design Principles
+Principle	Implementation
+Start Simple, Scale Smart	Modular monolith → Extract services only when proven necessary
+Singapore First	PDPA compliance, PayNow integration, local infrastructure
+Django 6.0 Native	Leverage built-in Tasks, CSP, Template Partials—reduce dependencies
+Cost Conscious	Phase infrastructure investment with revenue growth
+English Only	Single language codebase for maintainability
+1.3 Django 6.0 Strategic Advantages
+Django 6.0 (released December 3, 2025) provides significant simplifications:
+
+Feature	Benefit	Replaces
+Built-in Tasks Framework	Native async task handling	Celery (for simple cases)
+CSP Middleware	Security headers out-of-box	django-csp package
+Template Partials	Component reusability	django-template-partials
+Modern Email API	Cleaner email handling	Legacy MIME classes
+AsyncPaginator	Async-native pagination	Custom async pagination
+StringAgg (General)	Cross-database aggregation	PostgreSQL-only version
+1.4 Success Metrics
+Metric	Target	Measurement
+Time to MVP	12 weeks	Feature-complete beta
+Monthly Infrastructure Cost (Phase 1)	< S$300	AWS billing
+Page Load Time	< 2s (Singapore)	Lighthouse/RUM
+API Response Time (p95)	< 200ms	Prometheus
+Uptime	99.9%	Monitoring
+PDPA Compliance	100%	Audit checklist
+2. Business Requirements
+2.1 Target Market
+Primary Market: Singapore SMBs and Enterprises
+Secondary Market: ASEAN expansion (Phase 2+)
+
+2.2 Target Audience
+Segment	Size	Key Needs	Priority
+SMB Decision Makers	20-200 employees	Cost-effective, quick setup, local support	P0
+Enterprise IT Directors	200+ employees	Security, compliance, integrations	P0
+Technical Evaluators	All sizes	API docs, performance, reliability	P1
+End Users	All sizes	Intuitive UI, mobile access	P1
+2.3 Core Features (MVP Scope)
+Phase 1: Foundation (Weeks 1-6)
+Feature	Description	Priority
+Authentication	Email/password, MFA, password reset	P0
+Organization Management	Multi-tenant, team invitations, roles	P0
+Subscription & Billing	Stripe + PayNow, plan management	P0
+PDPA Compliance	Consent management, data access requests	P0
+Admin Dashboard	User management, audit logs	P0
+Phase 2: Core Product (Weeks 7-10)
+Feature	Description	Priority
+Workflow Builder	Visual workflow creation	P0
+Project Management	Projects, tasks, assignments	P0
+Notifications	Email, in-app, configurable preferences	P1
+Basic Analytics	Usage metrics, activity reports	P1
+Phase 3: Polish & Launch (Weeks 11-12)
+Feature	Description	Priority
+Marketing Website	Landing pages, pricing, features	P0
+Documentation	User guides, API docs	P0
+Onboarding Flow	Guided setup, templates	P1
+Performance Optimization	Caching, query optimization	P1
+2.4 Out of Scope (MVP)
+Mobile native apps (PWA only)
+Multi-language UI (English only)
+GraphQL API (REST only)
+Real-time collaboration (WebSocket deferred)
+Advanced AI/ML features
+White-label/reseller features
+3. Technical Architecture
+3.1 Architecture Overview
+text
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           TECHFLOW PLATFORM                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌──────────────┐     ┌──────────────────────────────────────────────┐ │
+│  │   BROWSER    │     │              CLOUDFLARE                       │ │
+│  │              │────▶│  CDN · WAF · DDoS Protection · SSL           │ │
+│  └──────────────┘     └──────────────────────────────────────────────┘ │
+│                                        │                                 │
+│                        ┌───────────────┴───────────────┐                │
+│                        ▼                               ▼                │
+│           ┌────────────────────┐         ┌────────────────────┐        │
+│           │    NEXT.JS 15      │         │    DJANGO 6.0      │        │
+│           │   (Frontend SSR)   │────────▶│   (API Backend)    │        │
+│           │                    │         │                    │        │
+│           │ • React 19         │         │ • REST API         │        │
+│           │ • TypeScript 5.6   │         │ • Built-in Tasks   │        │
+│           │ • Tailwind CSS 4   │         │ • CSP Middleware   │        │
+│           └────────────────────┘         └─────────┬──────────┘        │
+│                                                    │                    │
+│                          ┌─────────────────────────┼─────────────────┐  │
+│                          ▼                         ▼                 ▼  │
+│              ┌──────────────────┐    ┌──────────────────┐   ┌────────┐ │
+│              │   POSTGRESQL 17  │    │     REDIS 7.4    │   │   S3   │ │
+│              │                  │    │                  │   │        │ │
+│              │ • Primary DB     │    │ • Cache          │   │ Files  │ │
+│              │ • Full-text      │    │ • Sessions       │   │ Media  │ │
+│              │ • JSONB          │    │ • Task Backend   │   │        │ │
+│              └──────────────────┘    └──────────────────┘   └────────┘ │
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │                    EXTERNAL SERVICES                              │   │
+│  │  Stripe · PayNow · SendGrid · Sentry · SingPass (Phase 2)        │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+3.2 Architecture Decisions
+Decision	Choice	Rationale
+Architecture Pattern	Modular Monolith	Simplicity, single deployment, easier debugging
+API Style	REST (OpenAPI 3.1)	Universal compatibility, excellent tooling
+Real-time	Polling → WebSocket (Phase 2)	Reduce initial complexity
+Task Queue	Django 6.0 Tasks + Redis	Native Django, no Celery dependency
+Caching	Redis (single instance)	Session, cache, and task backend unified
+File Storage	S3-compatible	Scalable, cost-effective, CDN-friendly
+3.3 Component Communication
+text
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    REQUEST FLOW (Synchronous)                    │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Browser ──▶ CloudFlare ──▶ Next.js ──▶ Django API ──▶ Response │
+│                   │              │            │                  │
+│                   ▼              ▼            ▼                  │
+│              [Cache]      [SSR Cache]   [Redis Cache]           │
+│                                              │                   │
+│                                              ▼                   │
+│                                         PostgreSQL               │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                    TASK FLOW (Asynchronous)                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Django API                                                      │
+│      │                                                           │
+│      ▼                                                           │
+│  task.enqueue() ──▶ Redis (Task Backend) ──▶ Task Worker        │
+│                                                    │             │
+│                                                    ▼             │
+│                                         [Send Email/Process]     │
+│                                                    │             │
+│                                                    ▼             │
+│                                           Update Database        │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+4. Technology Stack
+4.1 Backend Stack (Django 6.0)
+Python
+
+# requirements/base.txt
+# Core Framework - Django 6.0 (Released Dec 3, 2025)
+Django==6.0
+djangorestframework==3.15.2
+django-cors-headers==4.6.0
+django-filter==24.3
+
+# Database
+psycopg[binary,pool]==3.2.4  # PostgreSQL adapter with connection pooling
+
+# Cache & Task Backend
+django-redis==5.4.0
+redis==5.2.1
+
+# Authentication
+djangorestframework-simplejwt==5.4.0
+django-allauth==65.3.0
+
+# API Documentation
+drf-spectacular==0.28.0
+
+# File Storage
+django-storages[s3]==1.14.4
+boto3==1.35.80
+
+# Utilities
+python-decouple==3.8
+Pillow==11.0.0
+
+# Payment Processing
+stripe==11.3.0
+
+# Email
+sendgrid==6.11.0
+
+# Monitoring
+sentry-sdk[django]==2.19.2
+
+# Security (CSP now built into Django 6.0!)
+# No django-csp needed - using native SECURE_CSP setting
+Python
+
+# requirements/development.txt
+-r base.txt
+
+# Development Tools
+django-debug-toolbar==4.4.6
+ipython==8.30.0
+
+# Testing
+pytest==8.3.4
+pytest-django==4.9.0
+pytest-cov==6.0.0
+pytest-asyncio==0.24.0
+factory-boy==3.3.1
+faker==33.1.0
+
+# Code Quality
+black==24.10.0
+ruff==0.8.3
+mypy==1.13.0
+django-stubs==5.1.1
+pre-commit==4.0.1
+4.2 Frontend Stack (Next.js 15)
+JSON
+
+{
+  "name": "techflow-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "next": "15.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "typescript": "5.7.2",
+    
+    "tailwindcss": "4.0.0",
+    "@tailwindcss/postcss": "4.0.0",
+    
+    "@radix-ui/react-dialog": "1.1.4",
+    "@radix-ui/react-dropdown-menu": "2.1.4",
+    "@radix-ui/react-tabs": "1.1.2",
+    "@radix-ui/react-toast": "1.2.4",
+    "@radix-ui/react-tooltip": "1.1.6",
+    
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "tailwind-merge": "2.6.0",
+    
+    "@tanstack/react-query": "5.62.7",
+    "zustand": "5.0.2",
+    
+    "react-hook-form": "7.54.1",
+    "zod": "3.24.1",
+    "@hookform/resolvers": "3.9.1",
+    
+    "recharts": "2.15.0",
+    "date-fns": "4.1.0",
+    
+    "lucide-react": "0.468.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.2",
+    "@types/react": "19.0.2",
+    "@types/react-dom": "19.0.2",
+    
+    "@testing-library/react": "16.1.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "vitest": "2.1.8",
+    "@vitejs/plugin-react": "4.3.4",
+    
+    "eslint": "9.16.0",
+    "eslint-config-next": "15.1.0",
+    "prettier": "3.4.2",
+    "prettier-plugin-tailwindcss": "0.6.9"
+  }
+}
+4.3 Infrastructure Stack
+Component	Technology	Version	Purpose
+Database	PostgreSQL	17.2	Primary data store
+Cache	Redis	7.4	Cache, sessions, task backend
+Reverse Proxy	Caddy	2.8	Auto-HTTPS, reverse proxy
+CDN	CloudFlare	Pro	CDN, WAF, DDoS protection
+Container	Docker	27.x	Containerization
+Object Storage	AWS S3	-	File storage
+Compute	AWS EC2	t3.medium	Application hosting
+Managed DB	AWS RDS	PostgreSQL 17	Database hosting
+Managed Cache	AWS ElastiCache	Redis 7.x	Cache hosting
+4.4 Version Compatibility Matrix
+Component	Minimum	Recommended	Notes
+Python	3.12	3.13	Django 6.0 requires 3.12+
+Node.js	22.0	22.x LTS	Next.js 15 requirement
+PostgreSQL	15	17	Latest features, performance
+Redis	7.0	7.4	Streams, functions
+5. Database Architecture
+5.1 Design Principles
+UUID Primary Keys: Globally unique, no sequential enumeration
+Soft Deletes: deleted_at for recoverable data
+Audit Trail: Created/updated timestamps on all tables
+Singapore Timezone: Asia/Singapore as default
+JSONB for Flexibility: Settings and metadata as JSONB
+5.2 Entity Relationship Diagram
+text
+
+┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+│     USERS       │       │  ORGANIZATIONS  │       │  SUBSCRIPTIONS  │
+├─────────────────┤       ├─────────────────┤       ├─────────────────┤
+│ id (UUID) PK    │       │ id (UUID) PK    │       │ id (UUID) PK    │
+│ email           │       │ name            │       │ organization_id │──┐
+│ password_hash   │       │ slug            │       │ tier            │  │
+│ first_name      │       │ uen             │       │ status          │  │
+│ last_name       │       │ gst_registered  │       │ stripe_sub_id   │  │
+│ is_active       │       │ timezone        │       │ current_period_ │  │
+│ mfa_enabled     │       │ settings (JSON) │       │   start/end     │  │
+│ created_at      │       │ created_at      │       │ max_users       │  │
+│ updated_at      │       │ deleted_at      │       │ created_at      │  │
+└────────┬────────┘       └────────┬────────┘       └─────────────────┘  │
+         │                         │                                      │
+         │    ┌────────────────────┴────────────────────┐                │
+         │    │                                         │                 │
+         ▼    ▼                                         ▼                 │
+┌─────────────────────┐                    ┌─────────────────────┐       │
+│ ORGANIZATION_MEMBERS│                    │      PROJECTS       │       │
+├─────────────────────┤                    ├─────────────────────┤       │
+│ id (UUID) PK        │                    │ id (UUID) PK        │       │
+│ organization_id FK  │◀───────────────────│ organization_id FK  │◀──────┘
+│ user_id FK          │                    │ name                │
+│ role                │                    │ slug                │
+│ is_active           │                    │ description         │
+│ joined_at           │                    │ created_by FK       │
+│ invited_by FK       │                    │ created_at          │
+└─────────────────────┘                    └──────────┬──────────┘
+                                                      │
+                                                      ▼
+                                           ┌─────────────────────┐
+                                           │     WORKFLOWS       │
+                                           ├─────────────────────┤
+                                           │ id (UUID) PK        │
+                                           │ project_id FK       │
+                                           │ name                │
+                                           │ definition (JSON)   │
+                                           │ is_published        │
+                                           │ created_by FK       │
+                                           │ created_at          │
+                                           └─────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        SINGAPORE COMPLIANCE TABLES                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────┐  │
+│  │  PDPA_CONSENTS  │  │DATA_ACCESS_REQS │  │  DATA_BREACH_INCIDENTS  │  │
+│  ├─────────────────┤  ├─────────────────┤  ├─────────────────────────┤  │
+│  │ id (UUID) PK    │  │ id (UUID) PK    │  │ id (UUID) PK            │  │
+│  │ user_id FK      │  │ user_id FK      │  │ incident_reference      │  │
+│  │ consent_type    │  │ reference_number│  │ severity                │  │
+│  │ is_granted      │  │ request_type    │  │ detected_at             │  │
+│  │ granted_at      │  │ status          │  │ pdpc_notified           │  │
+│  │ consent_text    │  │ submitted_at    │  │ data_types_affected     │  │
+│  │ consent_version │  │ due_date (30d)  │  │ remediation_actions     │  │
+│  │ ip_address      │  │ completed_at    │  │ created_at              │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────────────┘  │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+5.3 Complete Schema Definition
+SQL
+
+-- migrations/0001_initial_schema.sql
+-- TechFlow Platform - PostgreSQL 17 Schema
+-- Django 6.0 Compatible
+
+-- Enable required extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+
+-- =============================================================================
+-- CUSTOM TYPES
+-- =============================================================================
+
+CREATE TYPE user_role AS ENUM ('owner', 'admin', 'member', 'viewer');
+CREATE TYPE subscription_status AS ENUM (
+    'trialing', 'active', 'past_due', 'canceled', 'incomplete'
+);
+CREATE TYPE subscription_tier AS ENUM ('free', 'starter', 'professional', 'enterprise');
+CREATE TYPE invitation_status AS ENUM ('pending', 'accepted', 'expired', 'revoked');
+CREATE TYPE consent_type AS ENUM (
+    'marketing_email', 'marketing_sms', 'data_analytics', 
+    'third_party_sharing', 'cross_border_transfer'
+);
+CREATE TYPE access_request_type AS ENUM ('access', 'correction', 'deletion');
+CREATE TYPE access_request_status AS ENUM (
+    'pending', 'identity_verification', 'in_progress', 'completed', 'rejected'
+);
+CREATE TYPE breach_severity AS ENUM ('low', 'medium', 'high', 'critical');
+
+-- =============================================================================
+-- CORE TABLES
+-- =============================================================================
+
+-- Users (Django auth extended)
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(150) NOT NULL,
+    last_name VARCHAR(150) NOT NULL,
+    
+    -- Status
+    is_active BOOLEAN DEFAULT true,
+    is_staff BOOLEAN DEFAULT false,
+    is_superuser BOOLEAN DEFAULT false,
+    email_verified BOOLEAN DEFAULT false,
+    
+    -- MFA
+    mfa_enabled BOOLEAN DEFAULT false,
+    mfa_secret VARCHAR(255),
+    
+    -- Preferences
+    timezone VARCHAR(50) DEFAULT 'Asia/Singapore',
+    preferences JSONB DEFAULT '{}',
+    
+    -- Timestamps
+    last_login_at TIMESTAMPTZ,
+    password_changed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ,
+    
+    -- Constraints
+    CONSTRAINT users_email_format CHECK (
+        email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'
+    )
+);
+
+-- Organizations (Tenants)
+CREATE TABLE organizations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    
+    -- Singapore Business Info
+    uen VARCHAR(20),  -- Unique Entity Number
+    gst_registered BOOLEAN DEFAULT false,
+    gst_registration_number VARCHAR(20),
+    
+    -- Details
+    domain VARCHAR(255),
+    logo_url TEXT,
+    industry VARCHAR(100),
+    timezone VARCHAR(50) DEFAULT 'Asia/Singapore',
+    
+    -- Settings
+    settings JSONB DEFAULT '{}',
+    
+    -- Timestamps
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMPTZ,
+    
+    -- Constraints
+    CONSTRAINT organizations_slug_format CHECK (slug ~ '^[a-z0-9-]+$'),
+    CONSTRAINT valid_singapore_uen CHECK (
+        uen IS NULL OR 
+        uen ~ '^[0-9]{8}[A-Z]$' OR      -- Local Company
+        uen ~ '^[0-9]{9}[A-Z]$' OR      -- Business
+        uen ~ '^[TSRF][0-9]{2}[A-Z]{2}[0-9]{4}[A-Z]$'  -- Foreign/Others
+    )
+);
+
+-- Organization Members (Junction)
+CREATE TABLE organization_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    
+    role user_role NOT NULL DEFAULT 'member',
+    permissions JSONB DEFAULT '{}',
+    
+    is_active BOOLEAN DEFAULT true,
+    joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    invited_by UUID REFERENCES users(id),
+    
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    
+    UNIQUE(organization_id, user_id)
+);
+
+-- Invitations
+CREATE TABLE invitations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    
+    email VARCHAR(255) NOT NULL,
+    role user_role NOT NULL DEFAULT 'member',
+    token VARCHAR(255) UNIQUE NOT NULL,
+    status invitation_status DEFAULT 'pending',
+    
+    invited_by UUID NOT NULL REFERENCES users(id),
+    accepted_by UUID REFERENCES users(id),
+    
+    expires_at TIMESTAMPTZ NOT NULL,
+    accepted_at TIMESTAMPTZ,
+    
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Subscriptions
+CREATE TABLE subscriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID UNIQUE NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    
+    tier subscription_tier NOT NULL DEFAULT 'free',
+    status subscription_status NOT NULL DEFAULT 'active',
+    
+    -- Stripe Integration
+    stripe_customer_id VARCHAR(255),
+    stripe_subscription_id VARCHAR(255) UNIQUE,
+    
+    -- Billing Period
+    current_period_start TIMESTAMPTZ,
+    current_period_end TIMESTAMPTZ,
+    cancel_at_period_end BOOLEAN DEFAULT false,
+    canceled_at TIMESTAMPTZ,
+    
+    -- Trial
+    trial_start TIMESTAMPTZ,
+    trial_end TIMESTAMPTZ,
+    
+    -- Limits
+    max_users INTEGER NOT NULL DEFAULT 5,
+    max_projects INTEGER NOT NULL DEFAULT 3,
+    max_workflows INTEGER NOT NULL DEFAULT 10,
+    max_storage_mb INTEGER NOT NULL DEFAULT 1024,
+    
+    -- Billing
+    amount_cents INTEGER,
+    currency CHAR(3) DEFAULT 'SGD',
+    
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================================================
+-- BUSINESS TABLES
+-- =============================================================================
+
+-- Projects
+CREATE TABLE projects (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) NOT NULL,
+    description TEXT,
+    
+    settings JSONB DEFAULT '{}',
+    is_active BOOLEAN DEFAULT true,
+    
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    archived_at TIMESTAMPTZ,
+    
+    UNIQUE(organization_id, slug)
+);
+
+-- Workflows
+CREATE TABLE workflows (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    definition JSONB NOT NULL DEFAULT '{}',
+    
+    version INTEGER DEFAULT 1,
+    is_published BOOLEAN DEFAULT false,
+    is_active BOOLEAN DEFAULT true,
+    
+    created_by UUID NOT NULL REFERENCES users(id),
+    published_by UUID REFERENCES users(id),
+    published_at TIMESTAMPTZ,
+    
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Workflow Executions
+CREATE TABLE workflow_executions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    workflow_id UUID NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
+    
+    execution_ref VARCHAR(100) UNIQUE NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    
+    input_data JSONB DEFAULT '{}',
+    output_data JSONB DEFAULT '{}',
+    error_details JSONB,
+    
+    started_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMPTZ,
+    duration_ms INTEGER,
+    
+    triggered_by UUID REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================================================
+-- SINGAPORE COMPLIANCE TABLES (PDPA)
+-- =============================================================================
+
+-- PDPA Consent Management
+CREATE TABLE pdpa_consents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    
+    consent_type consent_type NOT NULL,
+    is_granted BOOLEAN NOT NULL DEFAULT false,
+    
+    -- Consent Details
+    granted_at TIMESTAMPTZ,
+    withdrawn_at TIMESTAMPTZ,
+    
+    -- Evidence (PDPA requires proof of consent)
+    consent_text_shown TEXT NOT NULL,
+    consent_version VARCHAR(20) NOT NULL,
+    collection_method VARCHAR(50) NOT NULL DEFAULT 'web_form',
+    
+    -- Context
+    ip_address INET,
+    user_agent TEXT,
+    
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    
+    UNIQUE(user_id, consent_type)
+);
+
+-- Data Access Requests (PDPA Right of Access - 30 day response)
+CREATE TABLE data_access_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    reference_number VARCHAR(50) UNIQUE NOT NULL,
+    
+    -- Requester
+    user_id UUID REFERENCES users(id),
+    requester_email VARCHAR(255) NOT NULL,
+    requester_name VARCHAR(255) NOT NULL,
+    
+    -- Request
+    request_type access_request_type NOT NULL,
+    request_details TEXT NOT NULL,
+    status access_request_status NOT NULL DEFAULT 'pending',
+    
+    -- Timeline (PDPA: must respond within 30 days)
+    submitted_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    due_date TIMESTAMPTZ NOT NULL,
+    completed_at TIMESTAMPTZ,
+    
+    -- Identity Verification
+    identity_verified BOOLEAN DEFAULT false,
+    verified_at TIMESTAMPTZ,
+    verified_by UUID REFERENCES users(id),
+    
+    -- Response
+    response_details TEXT,
+    response_documents JSONB DEFAULT '[]',
+    rejection_reason TEXT,
+    
+    -- Handling
+    handled_by UUID REFERENCES users(id),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Data Breach Incidents (PDPA 2020 - 72 hour notification)
+CREATE TABLE data_breach_incidents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    incident_reference VARCHAR(50) UNIQUE NOT NULL,
+    
+    -- Detection
+    detected_at TIMESTAMPTZ NOT NULL,
+    detected_by UUID REFERENCES users(id),
+    
+    -- Classification
+    severity breach_severity NOT NULL,
+    description TEXT NOT NULL,
+    
+    -- Affected Data
+    data_types_affected JSONB NOT NULL DEFAULT '[]',
+    estimated_individuals_affected INTEGER,
+    
+    -- PDPC Notification (72 hours for high/critical)
+    pdpc_notification_required BOOLEAN DEFAULT false,
+    pdpc_notified BOOLEAN DEFAULT false,
+    pdpc_notified_at TIMESTAMPTZ,
+    pdpc_reference VARCHAR(100),
+    
+    -- Individual Notification
+    individuals_notified BOOLEAN DEFAULT false,
+    individuals_notified_at TIMESTAMPTZ,
+    
+    -- Resolution
+    root_cause TEXT,
+    remediation_actions JSONB DEFAULT '[]',
+    closed_at TIMESTAMPTZ,
+    
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================================================
+-- AUDIT & LOGGING TABLES
+-- =============================================================================
+
+-- Audit Log (Tamper-evident)
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    
+    -- Actor
+    organization_id UUID REFERENCES organizations(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Action
+    action VARCHAR(100) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    resource_type VARCHAR(50) NOT NULL,
+    resource_id VARCHAR(255),
+    
+    -- Details
+    changes JSONB DEFAULT '{}',
+    personal_data_fields JSONB DEFAULT '[]',
+    
+    -- Context
+    ip_address INET,
+    user_agent TEXT,
+    request_id VARCHAR(100),
+    
+    -- Integrity (hash chain for tamper detection)
+    previous_hash VARCHAR(64),
+    entry_hash VARCHAR(64),
+    
+    -- Retention
+    retention_until DATE DEFAULT (CURRENT_DATE + INTERVAL '7 years'),
+    
+    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- API Keys
+CREATE TABLE api_keys (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    
+    name VARCHAR(255) NOT NULL,
+    prefix VARCHAR(10) NOT NULL,
+    key_hash VARCHAR(255) NOT NULL UNIQUE,
+    
+    scopes JSONB DEFAULT '[]',
+    rate_limit_per_hour INTEGER DEFAULT 1000,
+    
+    is_active BOOLEAN DEFAULT true,
+    expires_at TIMESTAMPTZ,
+    last_used_at TIMESTAMPTZ,
+    
+    created_by UUID NOT NULL REFERENCES users(id),
+    revoked_at TIMESTAMPTZ,
+    revoked_by UUID REFERENCES users(id),
+    
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================================================
+-- PAYMENT TABLES
+-- =============================================================================
+
+-- PayNow Transactions (Singapore Payment)
+CREATE TABLE paynow_transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    
+    reference VARCHAR(50) UNIQUE NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL,
+    currency CHAR(3) DEFAULT 'SGD',
+    
+    -- Status
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    
+    -- PayNow Details
+    qr_payload TEXT,
+    bank_reference VARCHAR(100),
+    
+    -- Timestamps
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ
+);
+
+-- =============================================================================
+-- INDEXES
+-- =============================================================================
+
+-- Users
+CREATE INDEX idx_users_email ON users(lower(email)) WHERE deleted_at IS NULL;
+CREATE INDEX idx_users_active ON users(is_active) WHERE deleted_at IS NULL;
+
+-- Organizations
+CREATE INDEX idx_organizations_slug ON organizations(slug) WHERE deleted_at IS NULL;
+CREATE INDEX idx_organizations_uen ON organizations(uen) WHERE uen IS NOT NULL;
+
+-- Organization Members
+CREATE INDEX idx_org_members_org ON organization_members(organization_id) WHERE is_active = true;
+CREATE INDEX idx_org_members_user ON organization_members(user_id) WHERE is_active = true;
+
+-- Subscriptions
+CREATE INDEX idx_subscriptions_status ON subscriptions(status, current_period_end);
+CREATE INDEX idx_subscriptions_stripe ON subscriptions(stripe_subscription_id);
+
+-- Projects & Workflows
+CREATE INDEX idx_projects_org ON projects(organization_id) WHERE is_active = true;
+CREATE INDEX idx_workflows_project ON workflows(project_id) WHERE is_active = true;
+CREATE INDEX idx_workflow_exec_status ON workflow_executions(status, started_at DESC);
+
+-- PDPA Compliance
+CREATE INDEX idx_pdpa_consents_user ON pdpa_consents(user_id);
+CREATE INDEX idx_data_access_status ON data_access_requests(status, due_date);
+CREATE INDEX idx_breach_severity ON data_breach_incidents(severity, pdpc_notified);
+
+-- Audit Logs (High volume - partition by month recommended for production)
+CREATE INDEX idx_audit_org_timestamp ON audit_logs(organization_id, timestamp DESC);
+CREATE INDEX idx_audit_user_timestamp ON audit_logs(user_id, timestamp DESC);
+CREATE INDEX idx_audit_action ON audit_logs(action, timestamp DESC);
+
+-- Full-Text Search
+CREATE INDEX idx_projects_search ON projects USING gin(
+    to_tsvector('english', name || ' ' || COALESCE(description, ''))
+);
+CREATE INDEX idx_workflows_search ON workflows USING gin(
+    to_tsvector('english', name || ' ' || COALESCE(description, ''))
+);
+
+-- =============================================================================
+-- TRIGGERS
+-- =============================================================================
+
+-- Auto-update updated_at
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_users_updated_at 
+    BEFORE UPDATE ON users 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER tr_organizations_updated_at 
+    BEFORE UPDATE ON organizations 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER tr_org_members_updated_at 
+    BEFORE UPDATE ON organization_members 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER tr_subscriptions_updated_at 
+    BEFORE UPDATE ON subscriptions 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER tr_projects_updated_at 
+    BEFORE UPDATE ON projects 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER tr_workflows_updated_at 
+    BEFORE UPDATE ON workflows 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- Auto-set due_date for data access requests (PDPA: 30 days)
+CREATE OR REPLACE FUNCTION set_access_request_due_date()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.due_date IS NULL THEN
+        NEW.due_date = NEW.submitted_at + INTERVAL '30 days';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_data_access_due_date
+    BEFORE INSERT ON data_access_requests
+    FOR EACH ROW EXECUTE FUNCTION set_access_request_due_date();
+
+-- =============================================================================
+-- ROW LEVEL SECURITY (RLS)
+-- =============================================================================
+
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workflows ENABLE ROW LEVEL SECURITY;
+
+-- Note: RLS policies are defined at application level via Django
+-- This enables future per-tenant isolation if needed
+5.4 Subscription Plan Limits
+Feature	Free	Starter (S$49/mo)	Professional (S$199/mo)	Enterprise
+Users	5	15	50	Unlimited
+Projects	3	10	25	Unlimited
+Workflows	10	50	200	Unlimited
+Storage	1 GB	10 GB	100 GB	1 TB+
+API Calls/month	1,000	10,000	100,000	Unlimited
+Support	Community	Email	Priority	Dedicated
+SLA	None	99.5%	99.9%	99.95%
+6. Backend Architecture
+6.1 Project Structure
+text
+
+backend/
+├── config/                          # Django configuration
+│   ├── __init__.py
+│   ├── settings/
+│   │   ├── __init__.py
+│   │   ├── base.py                  # Base settings
+│   │   ├── development.py           # Dev overrides
+│   │   ├── production.py            # Production settings
+│   │   └── test.py                  # Test settings
+│   ├── urls.py                      # Root URL configuration
+│   ├── wsgi.py                      # WSGI entry point
+│   └── asgi.py                      # ASGI entry point
+│
+├── apps/                            # Django applications
+│   ├── __init__.py
+│   │
+│   ├── core/                        # Core utilities
+│   │   ├── __init__.py
+│   │   ├── models.py                # Abstract base models
+│   │   ├── permissions.py           # Permission classes
+│   │   ├── pagination.py            # Custom pagination
+│   │   ├── exceptions.py            # Custom exceptions
+│   │   ├── middleware.py            # Custom middleware
+│   │   └── utils.py                 # Utility functions
+│   │
+│   ├── identity/                    # Authentication & Users
+│   │   ├── __init__.py
+│   │   ├── models.py                # User model
+│   │   ├── views.py                 # Auth views
+│   │   ├── serializers.py           # User serializers
+│   │   ├── services.py              # Auth service
+│   │   ├── tasks.py                 # Django 6.0 Tasks
+│   │   ├── urls.py
+│   │   └── tests/
+│   │
+│   ├── organizations/               # Multi-tenancy
+│   │   ├── __init__.py
+│   │   ├── models.py                # Org, Member, Invitation
+│   │   ├── views.py                 # Org viewsets
+│   │   ├── serializers.py
+│   │   ├── services.py              # Business logic
+│   │   ├── tasks.py
+│   │   ├── urls.py
+│   │   └── tests/
+│   │
+│   ├── billing/                     # Subscriptions & Payments
+│   │   ├── __init__.py
+│   │   ├── models.py                # Subscription, PayNow
+│   │   ├── views.py                 # Billing views
+│   │   ├── serializers.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── subscription.py      # Subscription service
+│   │   │   ├── stripe.py            # Stripe integration
+│   │   │   └── paynow.py            # PayNow integration
+│   │   ├── webhooks.py              # Payment webhooks
+│   │   ├── tasks.py
+│   │   ├── urls.py
+│   │   └── tests/
+│   │
+│   ├── workflows/                   # Core product
+│   │   ├── __init__.py
+│   │   ├── models.py                # Project, Workflow
+│   │   ├── views.py
+│   │   ├── serializers.py
+│   │   ├── services.py
+│   │   ├── tasks.py
+│   │   ├── urls.py
+│   │   └── tests/
+│   │
+│   ├── compliance/                  # Singapore PDPA
+│   │   ├── __init__.py
+│   │   ├── models.py                # Consent, AccessRequest, Breach
+│   │   ├── views.py                 # Compliance views
+│   │   ├── serializers.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── consent.py           # Consent management
+│   │   │   ├── access_request.py    # Data access requests
+│   │   │   ├── audit.py             # Audit logging
+│   │   │   └── breach.py            # Breach management
+│   │   ├── tasks.py
+│   │   ├── urls.py
+│   │   └── tests/
+│   │
+│   ├── notifications/               # Email & In-app
+│   │   ├── __init__.py
+│   │   ├── models.py
+│   │   ├── services.py
+│   │   ├── tasks.py                 # Email tasks
+│   │   ├── templates/               # Email templates
+│   │   └── tests/
+│   │
+│   └── api/                         # API versioning
+│       ├── __init__.py
+│       ├── v1/
+│       │   ├── __init__.py
+│       │   └── urls.py              # v1 URL routing
+│       └── urls.py                  # API root
+│
+├── services/                        # Shared services
+│   ├── __init__.py
+│   └── base.py                      # Base service class
+│
+├── templates/                       # Email templates
+├── static/                          # Static files
+├── media/                           # User uploads (dev only)
+├── locale/                          # Translations (future)
+├── fixtures/                        # Test data
+├── scripts/                         # Management scripts
+│
+├── requirements/
+│   ├── base.txt
+│   ├── development.txt
+│   └── production.txt
+│
+├── Dockerfile
+├── docker-compose.yml
+├── pytest.ini
+├── pyproject.toml                   # Black, Ruff, MyPy config
+├── manage.py
+└── .env.example
+6.2 Django 6.0 Configuration
+Python
+
+# config/settings/base.py
+"""
+Django 6.0 Base Settings for TechFlow Platform
+"""
+import os
+from pathlib import Path
+from datetime import timedelta
+
+from decouple import config, Csv
+
+# Build paths
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# =============================================================================
+# CORE SETTINGS
+# =============================================================================
+
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
+
+# =============================================================================
+# APPLICATION DEFINITION
+# =============================================================================
+
+DJANGO_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.postgres',  # PostgreSQL-specific features
+]
+
+THIRD_PARTY_APPS = [
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
+    'django_filters',
+    'drf_spectacular',
+    'storages',
+    'django_redis',
+]
+
+LOCAL_APPS = [
+    'apps.core',
+    'apps.identity',
+    'apps.organizations',
+    'apps.billing',
+    'apps.workflows',
+    'apps.compliance',
+    'apps.notifications',
+    'apps.api',
+]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+# =============================================================================
+# MIDDLEWARE
+# =============================================================================
+
+MIDDLEWARE = [
+    # Security (Django 6.0 built-in CSP)
+    'django.middleware.security.SecurityMiddleware',
+    'django.middleware.csp.ContentSecurityPolicyMiddleware',  # NEW in Django 6.0
+    
+    # CORS
+    'corsheaders.middleware.CorsMiddleware',
+    
+    # Static files (WhiteNoise)
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    
+    # Standard Django
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
+    # Custom
+    'apps.core.middleware.RequestIDMiddleware',
+    'apps.core.middleware.AuditLogMiddleware',
+]
+
+ROOT_URLCONF = 'config.urls'
+WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
+
+# =============================================================================
+# DATABASE (PostgreSQL 17)
+# =============================================================================
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME', default='techflow'),
+        'USER': config('DB_USER', default='techflow'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
+        'ATOMIC_REQUESTS': True,
+        'CONN_MAX_AGE': 600,
+        'OPTIONS': {
+            'connect_timeout': 10,
+            'options': '-c statement_timeout=30000',
+        },
+    }
+}
+
+# Django 6.0: BigAutoField is now default (no need to set)
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'  # Now default
+
+# =============================================================================
+# CACHE (Redis)
+# =============================================================================
+
+REDIS_URL = config('REDIS_URL', default='redis://localhost:6379')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'{REDIS_URL}/0',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
+            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+            'IGNORE_EXCEPTIONS': True,
+        },
+        'KEY_PREFIX': 'tf',
+        'TIMEOUT': 300,
+    },
+}
+
+# Session via Redis
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
+# =============================================================================
+# DJANGO 6.0 TASKS FRAMEWORK (Replaces Celery for simple cases)
+# =============================================================================
+
+TASKS = {
+    'default': {
+        'BACKEND': 'django.tasks.backends.redis.RedisBackend',
+        'OPTIONS': {
+            'url': f'{REDIS_URL}/1',
+        },
+    },
+}
+
+# =============================================================================
+# AUTHENTICATION
+# =============================================================================
+
+AUTH_USER_MODEL = 'identity.User'
+
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 
+     'OPTIONS': {'min_length': 12}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# =============================================================================
+# REST FRAMEWORK
+# =============================================================================
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.StandardPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '60/hour',
+        'user': '1000/hour',
+    },
+    'EXCEPTION_HANDLER': 'apps.core.exceptions.custom_exception_handler',
+}
+
+# JWT Settings
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_CLAIM': 'user_id',
+}
+
+# =============================================================================
+# DJANGO 6.0 CONTENT SECURITY POLICY
+# =============================================================================
+
+from django.utils.csp import CSP
+
+SECURE_CSP = {
+    'default-src': [CSP.SELF],
+    'script-src': [CSP.SELF, CSP.NONCE],
+    'style-src': [CSP.SELF, CSP.UNSAFE_INLINE],  # Tailwind requires inline styles
+    'img-src': [CSP.SELF, 'https:', 'data:'],
+    'font-src': [CSP.SELF, 'https://fonts.gstatic.com'],
+    'connect-src': [CSP.SELF, 'https://api.stripe.com'],
+    'frame-src': ['https://js.stripe.com', 'https://hooks.stripe.com'],
+    'object-src': [CSP.NONE],
+    'base-uri': [CSP.SELF],
+    'form-action': [CSP.SELF],
+}
+
+# For development, also report violations
+SECURE_CSP_REPORT_ONLY = config('CSP_REPORT_ONLY', default=True, cast=bool)
+
+# =============================================================================
+# SECURITY SETTINGS
+# =============================================================================
+
+# HTTPS settings (enabled in production)
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
+CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
+
+# Security headers
+SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', default=0, cast=int)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# =============================================================================
+# CORS
+# =============================================================================
+
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept', 'accept-encoding', 'authorization', 'content-type',
+    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
+    'x-organization-id', 'x-request-id',
+]
+
+# =============================================================================
+# INTERNATIONALIZATION
+# =============================================================================
+
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'Asia/Singapore'
+USE_I18N = False  # English only for MVP
+USE_TZ = True
+
+# =============================================================================
+# STATIC & MEDIA FILES
+# =============================================================================
+
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# =============================================================================
+# FILE STORAGE (S3)
+# =============================================================================
+
+USE_S3 = config('USE_S3', default=False, cast=bool)
+
+if USE_S3:
+    AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='ap-southeast-1')
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+    AWS_DEFAULT_ACL = None
+    AWS_S3_FILE_OVERWRITE = False
+    
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# =============================================================================
+# EMAIL
+# =============================================================================
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.sendgrid.net')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='apikey')
+EMAIL_HOST_PASSWORD = config('SENDGRID_API_KEY', default='')
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@techflow.sg')
+
+# =============================================================================
+# THIRD-PARTY SERVICES
+# =============================================================================
+
+# Stripe
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+STRIPE_WEBHOOK_SECRET = config('STRIPE_WEBHOOK_SECRET', default='')
+
+# PayNow
+PAYNOW_MERCHANT_UEN = config('PAYNOW_MERCHANT_UEN', default='')
+PAYNOW_MERCHANT_NAME = config('PAYNOW_MERCHANT_NAME', default='TechFlow Solutions Pte Ltd')
+
+# Sentry
+SENTRY_DSN = config('SENTRY_DSN', default='')
+
+# =============================================================================
+# SINGAPORE COMPLIANCE
+# =============================================================================
+
+# Company Information
+COMPANY_UEN = config('COMPANY_UEN', default='')
+COMPANY_NAME = 'TechFlow Solutions Pte Ltd'
+DPO_EMAIL = config('DPO_EMAIL', default='dpo@techflow.sg')
+
+# PDPA Settings
+PDPA_ACCESS_REQUEST_DEADLINE_DAYS = 30
+PDPA_BREACH_NOTIFICATION_HOURS = 72
+PDPA_CONSENT_VERSION = '1.0'
+
+# =============================================================================
+# API DOCUMENTATION
+# =============================================================================
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'TechFlow API',
+    'DESCRIPTION': 'Enterprise Workflow Automation Platform API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SCHEMA_PATH_PREFIX': r'/api/v[0-9]',
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+    },
+}
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'apps': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
+# =============================================================================
+# TEMPLATES (with Django 6.0 Template Partials)
+# =============================================================================
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.csp',  # Django 6.0 CSP nonce
+            ],
+        },
+    },
+]
+6.3 Django 6.0 Tasks Framework (Replacing Celery)
+Python
+
+# apps/notifications/tasks.py
+"""
+Background Tasks using Django 6.0 Built-in Tasks Framework
+
+Django 6.0 introduces a native task framework that handles:
+- Task definition and validation
+- Queuing to configured backends
+- Result handling
+
+Note: Worker execution is managed by external infrastructure.
+For MVP, we use a simple task runner script.
+"""
+
+from django.tasks import task
+from django.core.mail import send_mail
+from django.conf import settings
+from django.template.loader import render_to_string
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+@task
+def send_email_notification(
+    to_email: str,
+    subject: str,
+    template_name: str,
+    context: dict,
+) -> bool:
+    """
+    Send transactional email asynchronously.
+    
+    Args:
+        to_email: Recipient email address
+        subject: Email subject
+        template_name: Template path (e.g., 'emails/welcome.html')
+        context: Template context dictionary
+    
+    Returns:
+        True if email sent successfully
+    """
+    try:
+        # Render email content
+        html_content = render_to_string(template_name, context)
+        text_content = render_to_string(
+            template_name.replace('.html', '.txt'), 
+            context
+        )
+        
+        # Send email (Django 6.0 modern email API)
+        send_mail(
+            subject=subject,
+            message=text_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[to_email],
+            html_message=html_content,
+        )
+        
+        logger.info(f"Email sent successfully to {to_email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send email to {to_email}: {e}")
+        raise  # Re-raise for retry handling
+
+
+@task
+def send_invitation_email(
+    invitation_id: str,
+) -> bool:
+    """
+    Send organization invitation email.
+    """
+    from apps.organizations.models import Invitation
+    
+    invitation = Invitation.objects.select_related(
+        'organization', 'invited_by'
+    ).get(id=invitation_id)
+    
+    context = {
+        'organization_name': invitation.organization.name,
+        'inviter_name': invitation.invited_by.get_full_name(),
+        'invitation_url': f"{settings.FRONTEND_URL}/invite/{invitation.token}",
+        'expires_at': invitation.expires_at,
+    }
+    
+    return send_email_notification.enqueue(
+        to_email=invitation.email,
+        subject=f"You're invited to join {invitation.organization.name} on TechFlow",
+        template_name='emails/invitation.html',
+        context=context,
+    )
+
+
+@task
+def send_password_reset_email(
+    user_id: str,
+    reset_token: str,
+) -> bool:
+    """
+    Send password reset email.
+    """
+    from apps.identity.models import User
+    
+    user = User.objects.get(id=user_id)
+    
+    context = {
+        'user_name': user.first_name,
+        'reset_url': f"{settings.FRONTEND_URL}/reset-password/{reset_token}",
+    }
+    
+    return send_email_notification.enqueue(
+        to_email=user.email,
+        subject="Reset your TechFlow password",
+        template_name='emails/password_reset.html',
+        context=context,
+    )
+
+
+@task
+def send_welcome_email(
+    user_id: str,
+) -> bool:
+    """
+    Send welcome email to new users.
+    """
+    from apps.identity.models import User
+    
+    user = User.objects.get(id=user_id)
+    
+    context = {
+        'user_name': user.first_name,
+        'login_url': f"{settings.FRONTEND_URL}/login",
+        'docs_url': f"{settings.FRONTEND_URL}/docs",
+    }
+    
+    return send_email_notification.enqueue(
+        to_email=user.email,
+        subject="Welcome to TechFlow!",
+        template_name='emails/welcome.html',
+        context=context,
+    )
+
+
+# =============================================================================
+# COMPLIANCE TASKS
+# =============================================================================
+
+@task
+def process_data_access_request(
+    request_id: str,
+) -> dict:
+    """
+    Process PDPA data access request.
+    Gathers user data from all sources for export.
+    """
+    from apps.compliance.services.access_request import AccessRequestService
+    
+    service = AccessRequestService()
+    return service.process_request(request_id)
+
+
+@task
+def check_breach_notification_deadline(
+    incident_id: str,
+) -> None:
+    """
+    Check if breach notification deadline is approaching.
+    PDPA requires notification within 72 hours for significant breaches.
+    """
+    from apps.compliance.services.breach import BreachService
+    
+    service = BreachService()
+    service.check_notification_deadline(incident_id)
+
+
+# =============================================================================
+# BILLING TASKS
+# =============================================================================
+
+@task
+def sync_stripe_subscription(
+    organization_id: str,
+) -> dict:
+    """
+    Sync subscription status with Stripe.
+    """
+    from apps.billing.services.subscription import SubscriptionService
+    
+    service = SubscriptionService()
+    return service.sync_from_stripe(organization_id)
+
+
+@task
+def process_paynow_payment_confirmation(
+    transaction_id: str,
+    bank_reference: str,
+) -> bool:
+    """
+    Process confirmed PayNow payment.
+    """
+    from apps.billing.services.paynow import PayNowService
+    
+    service = PayNowService()
+    return service.confirm_payment(transaction_id, bank_reference)
+6.4 Service Layer Pattern
+Python
+
+# services/base.py
+"""
+Base Service Class for Business Logic
+
+All business logic should be encapsulated in services.
+Views/ViewSets should be thin and delegate to services.
+"""
+
+from abc import ABC, abstractmethod
+from typing import Any, Generic, TypeVar
+from dataclasses import dataclass, field
+from django.db import transaction
+import logging
+
+logger = logging.getLogger(__name__)
+
+T = TypeVar('T')
+
+
+@dataclass
+class ServiceResult(Generic[T]):
+    """
+    Standardized service result container.
+    """
+    success: bool
+    data: T | None = None
+    errors: list[dict] = field(default_factory=list)
+    message: str = ""
+    
+    @classmethod
+    def ok(cls, data: T = None, message: str = "") -> 'ServiceResult[T]':
+        return cls(success=True, data=data, message=message)
+    
+    @classmethod
+    def fail(cls, errors: list[dict] = None, message: str = "") -> 'ServiceResult[T]':
+        return cls(success=False, errors=errors or [], message=message)
+    
+    def add_error(self, field: str, message: str) -> None:
+        self.errors.append({'field': field, 'message': message})
+
+
+class BaseService(ABC):
+    """
+    Abstract base service with common patterns.
+    """
+    
+    def __init__(self, user=None, organization=None):
+        self.user = user
+        self.organization = organization
+        self._result = ServiceResult(success=True)
+    
+    def add_error(self, field: str, message: str) -> None:
+        """Add validation error."""
+        self._result.add_error(field, message)
+        self._result.success = False
+    
+    def has_errors(self) -> bool:
+        """Check if service has errors."""
+        return not self._result.success
+    
+    @abstractmethod
+    def validate(self, **kwargs) -> bool:
+        """Validate input data. Override in subclasses."""
+        pass
+    
+    @abstractmethod
+    def execute(self, **kwargs) -> Any:
+        """Execute service logic. Override in subclasses."""
+        pass
+    
+    def run(self, **kwargs) -> ServiceResult:
+        """
+        Run service with validation, transaction, and error handling.
+        """
+        try:
+            # Reset state
+            self._result = ServiceResult(success=True)
+            
+            # Validate
+            if not self.validate(**kwargs):
+                return self._result
+            
+            # Execute in transaction
+            with transaction.atomic():
+                result = self.execute(**kwargs)
+            
+            return ServiceResult.ok(data=result)
+            
+        except Exception as e:
+            logger.exception(f"Service error in {self.__class__.__name__}: {e}")
+            return ServiceResult.fail(
+                errors=[{'field': 'general', 'message': str(e)}],
+                message="An unexpected error occurred"
+            )
+
+
+# apps/organizations/services.py
+"""
+Organization Service - Business Logic
+"""
+
+from services.base import BaseService, ServiceResult
+from apps.organizations.models import Organization, OrganizationMember, Invitation
+from apps.billing.models import Subscription
+from apps.notifications.tasks import send_invitation_email
+from django.utils import timezone
+from datetime import timedelta
+import secrets
+
+
+class OrganizationService(BaseService):
+    """
+    Handle organization creation and management.
+    """
+    
+    def validate(self, **kwargs) -> bool:
+        operation = kwargs.get('operation')
+        
+        if operation == 'create':
+            name = kwargs.get('name', '').strip()
+            if not name:
+                self.add_error('name', 'Organization name is required')
+            if len(name) < 2:
+                self.add_error('name', 'Name must be at least 2 characters')
+            if len(name) > 255:
+                self.add_error('name', 'Name cannot exceed 255 characters')
+                
+        return not self.has_errors()
+    
+    def execute(self, **kwargs) -> Any:
+        operation = kwargs.get('operation')
+        
+        if operation == 'create':
+            return self._create_organization(**kwargs)
+        elif operation == 'update':
+            return self._update_organization(**kwargs)
+        else:
+            raise ValueError(f"Unknown operation: {operation}")
+    
+    def _create_organization(self, name: str, **kwargs) -> Organization:
+        """Create new organization with owner and subscription."""
+        from django.utils.text import slugify
+        
+        # Generate unique slug
+        base_slug = slugify(name)[:50]
+        slug = base_slug
+        counter = 1
+        while Organization.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+        
+        # Create organization
+        org = Organization.objects.create(
+            name=name,
+            slug=slug,
+            uen=kwargs.get('uen'),
+            industry=kwargs.get('industry'),
+            timezone='Asia/Singapore',
+        )
+        
+        # Add creator as owner
+        OrganizationMember.objects.create(
+            organization=org,
+            user=self.user,
+            role='owner',
+            is_active=True,
+            joined_at=timezone.now(),
+        )
+        
+        # Create free subscription
+        Subscription.objects.create(
+            organization=org,
+            tier='free',
+            status='active',
+            max_users=5,
+            max_projects=3,
+            max_workflows=10,
+            max_storage_mb=1024,
+        )
+        
+        return org
+    
+    def _update_organization(self, organization: Organization, **kwargs) -> Organization:
+        """Update organization details."""
+        allowed_fields = ['name', 'industry', 'domain', 'logo_url', 'settings']
+        
+        for field in allowed_fields:
+            if field in kwargs:
+                setattr(organization, field, kwargs[field])
+        
+        organization.save()
+        return organization
+
+
+class InvitationService(BaseService):
+    """
+    Handle team member invitations.
+    """
+    
+    def validate(self, **kwargs) -> bool:
+        email = kwargs.get('email', '').strip().lower()
+        
+        if not email:
+            self.add_error('email', 'Email is required')
+            return False
+        
+        # Check if already a member
+        if OrganizationMember.objects.filter(
+            organization=self.organization,
+            user__email=email,
+            is_active=True
+        ).exists():
+            self.add_error('email', 'This user is already a member')
+        
+        # Check if pending invitation exists
+        if Invitation.objects.filter(
+            organization=self.organization,
+            email=email,
+            status='pending',
+            expires_at__gt=timezone.now()
+        ).exists():
+            self.add_error('email', 'An invitation is already pending for this email')
+        
+        # Check organization limits
+        current_members = OrganizationMember.objects.filter(
+            organization=self.organization,
+            is_active=True
+        ).count()
+        
+        subscription = self.organization.subscription
+        if subscription.max_users > 0 and current_members >= subscription.max_users:
+            self.add_error('email', 'Organization has reached its user limit')
+        
+        return not self.has_errors()
+    
+    def execute(self, **kwargs) -> Invitation:
+        email = kwargs.get('email').strip().lower()
+        role = kwargs.get('role', 'member')
+        
+        # Create invitation
+        invitation = Invitation.objects.create(
+            organization=self.organization,
+            email=email,
+            role=role,
+            token=secrets.token_urlsafe(32),
+            status='pending',
+            invited_by=self.user,
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+        
+        # Queue invitation email (Django 6.0 Tasks)
+        send_invitation_email.enqueue(invitation_id=str(invitation.id))
+        
+        return invitation
+6.5 Core Models
+Python
+
+# apps/core/models.py
+"""
+Abstract Base Models
+"""
+
+import uuid
+from django.db import models
+from django.utils import timezone
+
+
+class TimeStampedModel(models.Model):
+    """
+    Abstract model with created_at and updated_at timestamps.
+    """
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        abstract = True
+
+
+class UUIDModel(models.Model):
+    """
+    Abstract model with UUID primary key.
+    """
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+    
+    class Meta:
+        abstract = True
+
+
+class SoftDeleteModel(models.Model):
+    """
+    Abstract model with soft delete support.
+    """
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        abstract = True
+    
+    def soft_delete(self):
+        self.deleted_at = timezone.now()
+        self.save(update_fields=['deleted_at'])
+    
+    def restore(self):
+        self.deleted_at = None
+        self.save(update_fields=['deleted_at'])
+    
+    @property
+    def is_deleted(self):
+        return self.deleted_at is not None
+
+
+class BaseModel(UUIDModel, TimeStampedModel):
+    """
+    Base model combining UUID and timestamps.
+    Use this for most models.
+    """
+    class Meta:
+        abstract = True
+
+
+# apps/identity/models.py
+"""
+User and Authentication Models
+"""
+
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.base_user import BaseUserManager
+from django.db import models
+from apps.core.models import UUIDModel, TimeStampedModel
+
+
+class UserManager(BaseUserManager):
+    """
+    Custom user manager for email-based authentication.
+    """
+    
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('Email is required')
+        
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+    
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        
+        return self.create_user(email, password, **extra_fields)
+
+
+class User(UUIDModel, TimeStampedModel, AbstractBaseUser, PermissionsMixin):
+    """
+    Custom user model with email as username.
+    """
+    email = models.EmailField(unique=True, max_length=255)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    
+    # Status
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    email_verified = models.BooleanField(default=False)
+    
+    # MFA
+    mfa_enabled = models.BooleanField(default=False)
+    mfa_secret = models.CharField(max_length=255, blank=True)
+    
+    # Preferences
+    timezone = models.CharField(max_length=50, default='Asia/Singapore')
+    preferences = models.JSONField(default=dict)
+    
+    # Timestamps
+    last_login_at = models.DateTimeField(null=True, blank=True)
+    password_changed_at = models.DateTimeField(null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    
+    objects = UserManager()
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+    
+    class Meta:
+        db_table = 'users'
+        indexes = [
+            models.Index(fields=['email'], name='idx_users_email'),
+        ]
+    
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+    
+    def get_short_name(self):
+        return self.first_name
+    
+    def __str__(self):
+        return self.email
+
+
+# apps/organizations/models.py
+"""
+Organization and Multi-tenancy Models
+"""
+
+from django.db import models
+from django.conf import settings
+from apps.core.models import BaseModel, SoftDeleteModel
+
+
+class Organization(BaseModel, SoftDeleteModel):
+    """
+    Organization (Tenant) model.
+    """
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True)
+    
+    # Singapore Business Info
+    uen = models.CharField(max_length=20, blank=True, null=True)
+    gst_registered = models.BooleanField(default=False)
+    gst_registration_number = models.CharField(max_length=20, blank=True)
+    
+    # Details
+    domain = models.CharField(max_length=255, blank=True)
+    logo_url = models.URLField(blank=True)
+    industry = models.CharField(max_length=100, blank=True)
+    timezone = models.CharField(max_length=50, default='Asia/Singapore')
+    
+    # Settings
+    settings = models.JSONField(default=dict)
+    
+    class Meta:
+        db_table = 'organizations'
+        indexes = [
+            models.Index(fields=['slug'], name='idx_orgs_slug'),
+            models.Index(fields=['uen'], name='idx_orgs_uen'),
+        ]
+    
+    def __str__(self):
+        return self.name
+
+
+class OrganizationMember(BaseModel):
+    """
+    Organization membership with role.
+    """
+    class Role(models.TextChoices):
+        OWNER = 'owner', 'Owner'
+        ADMIN = 'admin', 'Admin'
+        MEMBER = 'member', 'Member'
+        VIEWER = 'viewer', 'Viewer'
+    
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='members'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='organization_memberships'
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=Role.choices,
+        default=Role.MEMBER
+    )
+    permissions = models.JSONField(default=dict)
+    
+    is_active = models.BooleanField(default=True)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='invitations_sent'
+    )
+    
+    class Meta:
+        db_table = 'organization_members'
+        unique_together = ['organization', 'user']
+        indexes = [
+            models.Index(fields=['organization', 'is_active'], name='idx_members_org'),
+            models.Index(fields=['user', 'is_active'], name='idx_members_user'),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.email} @ {self.organization.name} ({self.role})"
+
+
+class Invitation(BaseModel):
+    """
+    Pending organization invitation.
+    """
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        ACCEPTED = 'accepted', 'Accepted'
+        EXPIRED = 'expired', 'Expired'
+        REVOKED = 'revoked', 'Revoked'
+    
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='invitations'
+    )
+    email = models.EmailField()
+    role = models.CharField(
+        max_length=20,
+        choices=OrganizationMember.Role.choices,
+        default=OrganizationMember.Role.MEMBER
+    )
+    token = models.CharField(max_length=255, unique=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+    
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='invitations_created'
+    )
+    accepted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='invitations_accepted'
+    )
+    
+    expires_at = models.DateTimeField()
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        db_table = 'invitations'
+        indexes = [
+            models.Index(fields=['token'], name='idx_invitations_token'),
+            models.Index(fields=['email', 'status'], name='idx_invitations_email'),
+        ]
+7. Frontend Architecture
+7.1 Project Structure
+text
+
+frontend/
+├── src/
+│   ├── app/                           # Next.js 15 App Router
+│   │   ├── (auth)/                    # Auth route group (no layout)
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx
+│   │   │   ├── register/
+│   │   │   │   └── page.tsx
+│   │   │   ├── forgot-password/
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx             # Auth layout
+│   │   │
+│   │   ├── (dashboard)/               # Dashboard route group
+│   │   │   ├── dashboard/
+│   │   │   │   └── page.tsx
+│   │   │   ├── projects/
+│   │   │   │   ├── page.tsx           # List projects
+│   │   │   │   ├── new/
+│   │   │   │   │   └── page.tsx       # Create project
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx       # Project detail
+│   │   │   ├── settings/
+│   │   │   │   ├── page.tsx           # General settings
+│   │   │   │   ├── billing/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── team/
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── security/
+│   │   │   │       └── page.tsx
+│   │   │   └── layout.tsx             # Dashboard layout
+│   │   │
+│   │   ├── (marketing)/               # Marketing/public pages
+│   │   │   ├── page.tsx               # Homepage
+│   │   │   ├── pricing/
+│   │   │   │   └── page.tsx
+│   │   │   ├── features/
+│   │   │   │   └── page.tsx
+│   │   │   └── layout.tsx             # Marketing layout
+│   │   │
+│   │   ├── api/                       # API routes (if needed)
+│   │   ├── layout.tsx                 # Root layout
+│   │   ├── error.tsx                  # Global error boundary
+│   │   ├── loading.tsx                # Global loading
+│   │   └── not-found.tsx              # 404 page
+│   │
+│   ├── components/
+│   │   ├── ui/                        # Base UI components
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── form.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── table.tsx
+│   │   │   ├── toast.tsx
+│   │   │   └── index.ts               # Barrel export
+│   │   │
+│   │   ├── layouts/                   # Layout components
+│   │   │   ├── dashboard-layout.tsx
+│   │   │   ├── marketing-layout.tsx
+│   │   │   ├── sidebar.tsx
+│   │   │   └── header.tsx
+│   │   │
+│   │   ├── features/                  # Feature-specific components
+│   │   │   ├── auth/
+│   │   │   │   ├── login-form.tsx
+│   │   │   │   └── register-form.tsx
+│   │   │   ├── billing/
+│   │   │   │   ├── payment-method-selector.tsx
+│   │   │   │   ├── paynow-qr.tsx
+│   │   │   │   └── subscription-card.tsx
+│   │   │   ├── projects/
+│   │   │   │   ├── project-card.tsx
+│   │   │   │   └── project-form.tsx
+│   │   │   └── settings/
+│   │   │       ├── organization-settings.tsx
+│   │   │       └── security-settings.tsx
+│   │   │
+│   │   └── shared/                    # Shared components
+│   │       ├── empty-state.tsx
+│   │       ├── error-message.tsx
+│   │       ├── loading-spinner.tsx
+│   │       └── pagination.tsx
+│   │
+│   ├── lib/
+│   │   ├── api/                       # API client
+│   │   │   ├── client.ts              # Axios instance
+│   │   │   ├── auth.ts                # Auth endpoints
+│   │   │   ├── organizations.ts       # Org endpoints
+│   │   │   └── types.ts               # API types
+│   │   │
+│   │   ├── hooks/                     # Custom hooks
+│   │   │   ├── use-auth.ts
+│   │   │   ├── use-organization.ts
+│   │   │   └── use-debounce.ts
+│   │   │
+│   │   ├── stores/                    # Zustand stores
+│   │   │   ├── auth-store.ts
+│   │   │   └── organization-store.ts
+│   │   │
+│   │   ├── utils/                     # Utilities
+│   │   │   ├── cn.ts                  # className utility
+│   │   │   ├── format.ts              # Formatting (currency, date)
+│   │   │   └── validation.ts          # Zod schemas
+│   │   │
+│   │   └── constants/                 # Constants
+│   │       └── index.ts
+│   │
+│   └── styles/
+│       └── globals.css                # Tailwind imports
+│
+├── public/
+│   ├── icons/                         # App icons
+│   └── images/                        # Static images
+│
+├── tests/
+│   ├── components/                    # Component tests
+│   └── utils/                         # Utility tests
+│
+├── next.config.ts                     # Next.js config
+├── tailwind.config.ts                 # Tailwind config
+├── tsconfig.json                      # TypeScript config
+├── vitest.config.ts                   # Vitest config
+├── package.json
+├── Dockerfile
+└── .env.local.example
+7.2 Next.js 15 Configuration
+TypeScript
+
+// 
